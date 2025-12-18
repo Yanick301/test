@@ -143,3 +143,4 @@ Pour plus de détails, consultez `GUIDE_CONFIGURATION_SUPABASE.md`
 
 
 
+

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ProductCard } from '@/components/ProductCard';
@@ -6,32 +5,16 @@ import { notFound, useParams } from 'next/navigation';
 import { TranslatedText } from '@/components/TranslatedText';
 import { useMemo, useEffect, useState } from 'react';
 import type { Product } from '@/lib/types';
-import { categories, products as allProducts, getProductsByCategory } from '@/lib/data';
+import { categories, products as allProducts, getProductsByCategory, getProductsBySubcategory } from '@/lib/data';
 import { useLanguage } from '@/context/LanguageContext';
-import { Breadcrumbs, useBreadcrumbsForCategory } from '@/components/Breadcrumbs';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import { usePagination } from '@/hooks/usePagination';
 import { Pagination } from '@/components/Pagination';
 import { SEOHead } from '@/components/SEOHead';
 import { ProductFilters } from '@/components/ProductFilters';
 import { SubCategoryList } from '@/components/SubCategoryList';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { X } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 12;
-
-
-type CategoryPageProps = {
-  params: {
-    category: string;
-  };
-};
-
-// This component is now client-side, so we can't export metadata directly.
-// We'll handle the title dynamically in the component.
 
 type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'newest';
 
@@ -41,10 +24,11 @@ interface FilterState {
   selectedColors: string[];
 }
 
-export default function CategoryPage() {
+export default function SubCategoryPage() {
   const params = useParams();
   const { language } = useLanguage();
   const categorySlug = params.category as string;
+  const subcategorySlug = params.subcategory as string;
   
   const [sortOption, setSortOption] = useState<SortOption>('name-asc');
   const [filters, setFilters] = useState<FilterState>({
@@ -56,7 +40,19 @@ export default function CategoryPage() {
   const category = useMemo(() => {
     return categories.find((c) => c.slug === categorySlug);
   }, [categorySlug]);
+
+  const subcategory = useMemo(() => {
+    if (!category || !category.subcategories) return undefined;
+    return category.subcategories.find((s) => s.slug === subcategorySlug);
+  }, [category, subcategorySlug]);
   
+  // Filtrer les produits par catégorie et sous-catégorie
+  const allProductsInSubcategory = useMemo(() => {
+    if (!categorySlug || !subcategorySlug) return [];
+    return getProductsBySubcategory(allProducts, categorySlug, subcategorySlug);
+  }, [categorySlug, subcategorySlug]);
+  
+  // Pour les filtres, on utilise tous les produits de la catégorie
   const allProductsInCategory = useMemo(() => {
     if (!categorySlug) return [];
     return getProductsByCategory(allProducts, categorySlug);
@@ -64,7 +60,7 @@ export default function CategoryPage() {
 
   // Apply filters
   const filteredProducts = useMemo(() => {
-    let filtered = [...allProductsInCategory];
+    let filtered = [...allProductsInSubcategory];
 
     // Price filter
     filtered = filtered.filter(p => 
@@ -89,7 +85,7 @@ export default function CategoryPage() {
     }
 
     return filtered;
-  }, [allProductsInCategory, filters, language]);
+  }, [allProductsInSubcategory, filters, language]);
 
   // Apply sorting
   const sortedProducts = useMemo(() => {
@@ -113,7 +109,7 @@ export default function CategoryPage() {
       case 'price-desc':
         return sorted.sort((a, b) => b.price - a.price);
       case 'newest':
-        return sorted; // Keep original order for now
+        return sorted;
       default:
         return sorted;
     }
@@ -122,44 +118,50 @@ export default function CategoryPage() {
   const products = sortedProducts;
 
   const getPageTitle = () => {
-     if (categorySlug === 'all') {
-        switch (language) {
-            case 'fr': return 'Tous les produits';
-            case 'en': return 'All Products';
-            default: return 'Alle Produkte';
-        }
-     }
-     if (category) {
-        switch (language) {
-            case 'fr': return category.name_fr;
-            case 'en': return category.name_en;
-            default: return category.name;
-        }
-     }
-     return 'Produkte';
-  }
+    if (subcategory) {
+      switch (language) {
+        case 'fr': return subcategory.name_fr;
+        case 'en': return subcategory.name_en;
+        default: return subcategory.name;
+      }
+    }
+    if (category) {
+      switch (language) {
+        case 'fr': return category.name_fr;
+        case 'en': return category.name_en;
+        default: return category.name;
+      }
+    }
+    return 'Produkte';
+  };
 
-  const pageTitle = useMemo(() => getPageTitle(), [categorySlug, category, language]);
+  const pageTitle = useMemo(() => getPageTitle(), [subcategory, category, language]);
   
-  // Dynamically update document title
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        document.title = `${pageTitle} | EZCENTIALS`;
+      document.title = `${pageTitle} | EZCENTIALS`;
     }
   }, [pageTitle]);
 
-  const title = categorySlug === 'all' ? 'Alle Produkte' : category?.name;
-  const titleFr = categorySlug === 'all' ? 'Tous les produits' : category?.name_fr;
-  const titleEn = categorySlug === 'all' ? 'All Products' : category?.name_en;
+  const title = subcategory?.name || category?.name || 'Produkte';
+  const titleFr = subcategory?.name_fr || category?.name_fr || 'Produits';
+  const titleEn = subcategory?.name_en || category?.name_en || 'Products';
 
-  if (products.length === 0 && categorySlug !== 'all') {
-    const categoryExists = categories.some(c => c.slug === categorySlug);
-    if (!categoryExists) {
-        notFound();
-    }
+  if (!category || !subcategory) {
+    notFound();
   }
 
-  const breadcrumbs = category ? useBreadcrumbsForCategory(categorySlug) : [];
+  const breadcrumbs = [
+    { label: language === 'fr' ? 'Accueil' : language === 'en' ? 'Home' : 'Startseite', href: '/' },
+    { 
+      label: language === 'fr' ? category.name_fr : language === 'en' ? category.name_en : category.name, 
+      href: `/products/${categorySlug}` 
+    },
+    { 
+      label: language === 'fr' ? subcategory.name_fr : language === 'en' ? subcategory.name_en : subcategory.name, 
+      href: `/products/${categorySlug}/${subcategorySlug}` 
+    },
+  ];
 
   const {
     currentPage,
@@ -214,24 +216,25 @@ export default function CategoryPage() {
         )}
 
         {products.length === 0 ? (
-        <p className="text-center text-muted-foreground">
-          <TranslatedText fr="Aucun produit trouvé dans cette catégorie." en="No products found in this category.">Keine Produkte in dieser Kategorie gefunden.</TranslatedText>
-        </p>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {paginatedItems.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
-        </>
-      )}
+          <p className="text-center text-muted-foreground">
+            <TranslatedText fr="Aucun produit trouvé dans cette sous-catégorie." en="No products found in this subcategory.">Keine Produkte in dieser Unterkategorie gefunden.</TranslatedText>
+          </p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+              {paginatedItems.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </>
+        )}
       </div>
     </>
   );
 }
+

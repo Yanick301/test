@@ -72,10 +72,10 @@ export function Header() {
                 <nav>
                   <ul className="flex flex-col space-y-6">
                     {categories.map((category) => (
-                      <li key={category.id}>
+                      <li key={category.id} className="space-y-2">
                         <Link
                           href={`/products/${category.slug}`}
-                          className="text-xl text-foreground/80 transition-colors hover:text-foreground"
+                          className="text-xl text-foreground/80 transition-colors hover:text-foreground font-semibold"
                           onClick={handleLinkClick}
                           prefetch={true}
                         >
@@ -86,6 +86,27 @@ export function Header() {
                             {category.name}
                           </TranslatedText>
                         </Link>
+                        {category.subcategories && category.subcategories.length > 0 && (
+                          <ul className="ml-4 mt-2 flex flex-col space-y-2 border-l border-border pl-4">
+                            {category.subcategories.map((subcategory) => (
+                              <li key={subcategory.id}>
+                                <Link
+                                  href={`/products/${category.slug}/${subcategory.slug}`}
+                                  className="text-base text-foreground/70 transition-colors hover:text-foreground"
+                                  onClick={handleLinkClick}
+                                  prefetch={true}
+                                >
+                                  <TranslatedText
+                                    fr={subcategory.name_fr}
+                                    en={subcategory.name_en}
+                                  >
+                                    {subcategory.name}
+                                  </TranslatedText>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </li>
                     ))}
                   </ul>

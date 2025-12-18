@@ -30,6 +30,7 @@ export type Product = {
   description_fr: string;
   description_en: string;
   category: string;
+  subcategory?: string; // Subcategory slug
   images: string[];
   sizes?: string[];
   colors?: Color[];
