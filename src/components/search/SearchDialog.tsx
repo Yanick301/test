@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import type { Product } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
@@ -16,7 +17,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TranslatedText } from '../TranslatedText';
 import { categories, products as allProducts } from '@/lib/data';
-import type { Product } from '@/lib/types';
 import placeholderImagesData from '@/lib/placeholder-images.json';
 import Link from 'next/link';
 import { Separator } from '../ui/separator';
@@ -27,6 +27,7 @@ const { placeholderImages } = placeholderImagesData;
 export function SearchDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [queryTerm, setQueryTerm] = useState('');
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const router = useRouter();
   const { language } = useLanguage();
 
@@ -55,10 +56,17 @@ export function SearchDialog() {
     }
   };
 
-  // Reset query when opening/closing
+  // Reset query when opening/closing and generate suggestions
   useEffect(() => {
     if (isOpen) {
       setQueryTerm('');
+      // Show popular/trending products as suggestions
+      const popular = allProducts
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 4);
+      setSuggestions(popular);
+    } else {
+      setSuggestions([]);
     }
   }, [isOpen]);
 
@@ -87,7 +95,11 @@ export function SearchDialog() {
                 value={queryTerm}
                 onChange={(e) => setQueryTerm(e.target.value)}
                 aria-label="Search"
-                placeholder={language === 'fr' ? "Rechercher..." : language === 'en' ? "Search..." : "Suchen..."}
+                placeholder={
+                  language === 'fr' ? "Rechercher..." : 
+                  language === 'en' ? "Search..." : 
+                  "Suchen..."
+                }
                 className="text-base"
             />
             <Button type="submit" size="icon" aria-label="Perform search">
@@ -98,17 +110,57 @@ export function SearchDialog() {
 
         <div className="px-6 pb-6 space-y-4">
           {queryTerm.trim() === '' ? (
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-4"><TranslatedText fr="Catégories populaires" en="Popular Categories">Beliebte Kategorien</TranslatedText></h4>
-              <div className="flex flex-wrap gap-2">
-                {popularCategories.map(cat => (
-                    <Button key={cat.id} variant="outline" size="sm" asChild onClick={() => setIsOpen(false)}>
-                        <Link href={`/products/${cat.slug}`}>
-                            <TranslatedText fr={cat.name_fr} en={cat.name_en}>{cat.name}</TranslatedText>
-                        </Link>
-                    </Button>
-                ))}
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-4"><TranslatedText fr="Catégories populaires" en="Popular Categories">Beliebte Kategorien</TranslatedText></h4>
+                <div className="flex flex-wrap gap-2">
+                  {popularCategories.map(cat => (
+                      <Button key={cat.id} variant="outline" size="sm" asChild onClick={() => setIsOpen(false)}>
+                          <Link href={`/products/${cat.slug}`} prefetch={true}>
+                              <TranslatedText fr={cat.name_fr} en={cat.name_en}>{cat.name}</TranslatedText>
+                          </Link>
+                      </Button>
+                  ))}
+                </div>
               </div>
+              {suggestions.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-4"><TranslatedText fr="Suggestions" en="Suggestions">Vorschläge</TranslatedText></h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {suggestions.map((product) => {
+                      const productImage = placeholderImages.find(p => p.id === product.images[0]);
+                      return (
+                        <Link 
+                          key={product.id}
+                          href={`/product/${product.slug}`}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                          onClick={() => setIsOpen(false)}
+                          prefetch={true}
+                        >
+                          {productImage && (
+                            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border">
+                              <Image
+                                src={productImage.imageUrl}
+                                alt={language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name}
+                                fill
+                                sizes="48px"
+                                className="object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              <TranslatedText fr={product.name_fr} en={product.name_en}>{product.name}</TranslatedText>
+                            </p>
+                            <p className="text-xs text-muted-foreground">€{product.price.toFixed(2)}</p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : searchResults.length > 0 ? (
             <ul className="divide-y divide-border -mx-6">
@@ -120,12 +172,13 @@ export function SearchDialog() {
                         href={`/product/${product.slug}`} 
                         className="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 transition-colors"
                         onClick={() => setIsOpen(false)}
+                        prefetch={true}
                     >
                       <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
                         {productImage && (
                           <Image
                             src={productImage.imageUrl}
-                            alt={product.name}
+                            alt={language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name}
                             fill
                             sizes="64px"
                             className="object-cover"
@@ -135,7 +188,7 @@ export function SearchDialog() {
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-sm"><TranslatedText fr={product.name_fr} en={product.name_en}>{product.name}</TranslatedText></p>
-                        <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">€{product.price.toFixed(2)}</p>
                       </div>
                     </Link>
                   </li>

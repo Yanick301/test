@@ -38,23 +38,27 @@ export function SupabaseProvider({ children }: SupabaseProviderProps) {
       setSession(null);
       setProfile(null);
       setIsUserLoading(false);
-      setUserError(
-        new Error(
-          'Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local, then restart.'
-        )
-      );
+      const errorMsg = 'Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local, then restart.';
+      console.error('Supabase Configuration Error:', errorMsg);
+      setUserError(new Error(errorMsg));
       return;
     }
 
     // Récupérer la session initiale
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
+        console.error('Supabase Auth Error:', error);
         setUserError(error);
         setIsUserLoading(false);
         return;
       }
       setSession(session);
       setUser(session?.user ?? null);
+      setIsUserLoading(false);
+      setUserError(null);
+    }).catch((err) => {
+      console.error('Unexpected error getting session:', err);
+      setUserError(err instanceof Error ? err : new Error('Une erreur inattendue s\'est produite'));
       setIsUserLoading(false);
     });
 

@@ -36,14 +36,16 @@ export function UserButton() {
     try {
       await auth.signOut();
       toast({
-        title: language === 'fr' ? 'Déconnecté' : language === 'en' ? 'Logged Out' : 'Abgemeldet',
-        description: language === 'fr' ? 'Vous avez été déconnecté avec succès.' : language === 'en' ? 'You have been successfully logged out.' : 'Sie wurden erfolgreich abgemeldet.',
+        title: <TranslatedText fr="Déconnecté" en="Logged Out">Abgemeldet</TranslatedText>,
+        description: <TranslatedText fr="Vous avez été déconnecté avec succès." en="You have been successfully logged out.">Sie wurden erfolgreich abgemeldet.</TranslatedText>,
       });
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: language === 'fr' ? 'Échec de la déconnexion' : language === 'en' ? 'Logout Failed' : 'Abmeldung fehlgeschlagen',
-        description: error.message,
+        title: <TranslatedText fr="Échec de la déconnexion" en="Logout Failed">Abmeldung fehlgeschlagen</TranslatedText>,
+        description: error.message || (
+          <TranslatedText fr="Une erreur s'est produite lors de la déconnexion." en="An error occurred during logout.">Bei der Abmeldung ist ein Fehler aufgetreten.</TranslatedText>
+        ),
       });
     }
   };

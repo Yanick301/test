@@ -20,9 +20,13 @@ interface BreadcrumbsProps {
 
 export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
   const { language } = useLanguage();
-
+  
   const getLabel = (item: BreadcrumbItem) => {
     return item.label;
+  };
+
+  const getHomeAriaLabel = () => {
+    return language === 'fr' ? 'Accueil' : language === 'en' ? 'Home' : 'Startseite';
   };
 
   return (
@@ -32,9 +36,7 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
           <Link 
             href="/" 
             className="hover:text-foreground transition-colors flex items-center"
-            aria-label={
-              language === 'fr' ? 'Accueil' : language === 'en' ? 'Home' : 'Startseite'
-            }
+            aria-label={getHomeAriaLabel()}
           >
             <Home className="h-4 w-4" />
           </Link>

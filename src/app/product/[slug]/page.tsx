@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { ProductPageSkeleton } from '@/components/skeletons/ProductPageSkeleton';
+import { SEOHead } from '@/components/SEOHead';
 
 const { placeholderImages } = placeholderImagesData;
 
@@ -153,15 +154,15 @@ export default function ProductPage() {
 
         if (error) throw error;
         toast({
-            title: "Avis supprimé",
-            description: "Votre avis a été supprimé avec succès.",
+            title: <TranslatedText fr="Avis supprimé" en="Review deleted">Bewertung gelöscht</TranslatedText>,
+            description: <TranslatedText fr="Votre avis a été supprimé avec succès." en="Your review has been successfully deleted.">Ihre Bewertung wurde erfolgreich gelöscht.</TranslatedText>,
         });
     } catch (error) {
         console.error("Error deleting review: ", error);
         toast({
             variant: "destructive",
-            title: "Erreur",
-            description: "Impossible de supprimer l'avis. Veuillez réessayer.",
+            title: <TranslatedText fr="Erreur" en="Error">Fehler</TranslatedText>,
+            description: <TranslatedText fr="Impossible de supprimer l'avis. Veuillez réessayer." en="Unable to delete the review. Please try again.">Die Bewertung konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.</TranslatedText>,
         });
     } finally {
         setReviewToDelete(null);
@@ -214,8 +215,15 @@ export default function ProductPage() {
       color: selectedColor,
     });
     toast({
-      title: language === 'fr' ? 'Ajouté au panier !' : language === 'en' ? 'Added to cart!' : 'Zum Warenkorb hinzugefügt!',
-      description: language === 'fr' ? `${product.name_fr} a été ajouté à votre panier.` : language === 'en' ? `${product.name_en} has been added to your cart.` : `${product.name} wurde Ihrem Warenkorb hinzugefügt.`,
+      title: <TranslatedText fr="Ajouté au panier !" en="Added to cart!">Zum Warenkorb hinzugefügt!</TranslatedText>,
+      description: (
+        <TranslatedText 
+          fr={`${product.name_fr} a été ajouté à votre panier.`} 
+          en={`${product.name_en} has been added to your cart.`}
+        >
+          {`${product.name} wurde Ihrem Warenkorb hinzugefügt.`}
+        </TranslatedText>
+      ),
     });
   };
 
@@ -223,8 +231,10 @@ export default function ProductPage() {
   const breadcrumbs = useBreadcrumbsForProduct(product, category);
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <Breadcrumbs items={breadcrumbs} />
+    <>
+      {product && <SEOHead product={product} type="product" />}
+      <div className="container mx-auto px-4 py-12">
+        <Breadcrumbs items={breadcrumbs} />
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
         {/* Image Gallery */}
         <div className="flex flex-col gap-4">
@@ -232,7 +242,7 @@ export default function ProductPage() {
                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg">
                     <Image
                         src={mainImage.imageUrl}
-                        alt={product.name}
+                        alt={language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name}
                         fill
                         sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover"
@@ -246,7 +256,7 @@ export default function ProductPage() {
                     <div key={img.id} className="relative aspect-[3/4] w-full overflow-hidden rounded-lg">
                         <Image
                             src={img.imageUrl}
-                            alt={`${product.name} alternative Ansicht`}
+                            alt={`${language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name} - ${language === 'fr' ? 'Vue alternative' : language === 'en' ? 'Alternative view' : 'Alternative Ansicht'}`}
                             fill
                             sizes="(max-width: 768px) 33vw, 150px"
                             className="object-cover"
@@ -352,7 +362,9 @@ export default function ProductPage() {
             <TabsContent value="reviews" className="mt-4">
               <div className="space-y-8">
                 {isLoadingReviews ? (
-                    <p>Chargement des avis...</p>
+                    <p>
+                      <TranslatedText fr="Chargement des avis..." en="Loading reviews...">Bewertungen werden geladen...</TranslatedText>
+                    </p>
                 ) : sortedReviews.length > 0 ? (
                   sortedReviews.map((review) => (
                       <div key={review.id} className="flex gap-4">
@@ -445,7 +457,7 @@ export default function ProductPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-    </div>
+      </div>
+    </>
   );
 }

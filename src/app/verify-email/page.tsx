@@ -32,27 +32,41 @@ export default function VerifyEmailPage() {
     // We check `user` directly. If it exists and email_confirmed_at is set, we redirect.
     if (user?.email_confirmed_at) {
       toast({
-        title: language === 'fr' ? 'Compte vérifié !' : language === 'en' ? 'Account Verified!' : 'Konto bestätigt!',
-        description: language === 'fr' ? 'Vous allez être redirigé...' : language === 'en' ? 'Redirecting...' : 'Sie werden weitergeleitet...',
+        title: <TranslatedText fr="Compte vérifié !" en="Account Verified!">Konto bestätigt!</TranslatedText>,
+        description: <TranslatedText fr="Vous allez être redirigé..." en="Redirecting...">Sie werden weitergeleitet...</TranslatedText>,
       });
       router.push('/account');
     }
   }, [user, language, router, toast]);
 
   const handleResendEmail = async () => {
-    if (!user) {
+    if (!supabase) {
         toast({
             variant: "destructive",
-            title: "Erreur",
-            description: "Kein Benutzer angemeldet.",
+            title: <TranslatedText fr="Erreur de configuration" en="Configuration Error">Konfigurationsfehler</TranslatedText>,
+            description: <TranslatedText fr="Les services Supabase ne sont pas disponibles." en="Supabase services are not available.">Supabase-Dienste sind nicht verfügbar.</TranslatedText>,
         });
         return;
     }
+    
+    if (!user || !user.email) {
+        toast({
+            variant: "destructive",
+            title: <TranslatedText fr="Erreur" en="Error">Fehler</TranslatedText>,
+            description: <TranslatedText fr="Aucun utilisateur connecté." en="No user logged in.">Kein Benutzer angemeldet.</TranslatedText>,
+        });
+        return;
+    }
+    
     setIsResending(true);
     try {
+      const siteUrl = window.location.origin;
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email: user.email || '',
+        email: user.email,
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/callback?next=/account`,
+        },
       });
       
       if (error) {
@@ -60,15 +74,20 @@ export default function VerifyEmailPage() {
       }
       
       toast({
-        title: language === 'fr' ? 'E-mail renvoyé' : language === 'en' ? 'Email Resent' : 'E-Mail erneut gesendet',
-        description: language === 'fr' ? 'Un nouveau lien de vérification a été envoyé.' : language === 'en' ? 'A new verification link has been sent.' : 'Ein neuer Bestätigungslink wurde gesendet.',
+        title: <TranslatedText fr="E-mail renvoyé" en="Email Resent">E-Mail erneut gesendet</TranslatedText>,
+        description: <TranslatedText fr="Un nouveau lien de vérification a été envoyé à votre adresse e-mail." en="A new verification link has been sent to your email address.">Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet.</TranslatedText>,
       });
     } catch (error: any) {
-      console.error(error);
+      console.error('Error resending confirmation email:', error);
+      const errorMessage = error.message || (
+        language === 'fr' ? 'Une erreur s\'est produite lors de l\'envoi de l\'e-mail.' : 
+        language === 'en' ? 'An error occurred while sending the email.' : 
+        'Beim Senden der E-Mail ist ein Fehler aufgetreten.'
+      );
       toast({
         variant: 'destructive',
-        title: 'Erreur',
-        description: "Une erreur s'est produite lors de l'envoi de l'e-mail.",
+        title: <TranslatedText fr="Erreur" en="Error">Fehler</TranslatedText>,
+        description: errorMessage,
       });
     } finally {
         setIsResending(false);
@@ -79,7 +98,9 @@ export default function VerifyEmailPage() {
   if (isUserLoading) {
       return (
           <div className="flex min-h-[80vh] items-center justify-center">
-              <p>Chargement...</p>
+              <p>
+                <TranslatedText fr="Chargement..." en="Loading...">Laden...</TranslatedText>
+              </p>
           </div>
       )
   }

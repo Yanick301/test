@@ -82,51 +82,66 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col">
-      <section className="relative flex h-[70vh] w-full flex-col items-center justify-center text-center text-white overflow-hidden">
+      <section className="relative flex h-[70vh] min-h-[500px] w-full flex-col items-center justify-center text-center text-white overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="/images/header.jpg"
             alt="EZCENTIALS Header"
             fill
             sizes="100vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-700"
             priority
-            quality={85}
+            quality={90}
+            onError={(e) => {
+              console.error('Failed to load header image');
+              e.currentTarget.src = '/images/logo.png';
+            }}
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
         <div className="container px-4 z-10">
-          <p className="text-sm uppercase tracking-widest text-white animate-fade-in-up">
+          <p className="text-sm uppercase tracking-widest text-white/90 animate-fade-in-up font-medium">
              <TranslatedText fr="BIENVENUE CHEZ EZCENTIALS" en="WELCOME TO EZCENTIALS">WILLKOMMEN BEI EZCENTIALS</TranslatedText>
           </p>
-          <h1 className="mt-4 font-headline text-6xl md:text-9xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <h1 className="mt-4 font-headline text-5xl sm:text-6xl md:text-8xl lg:text-9xl animate-fade-in-up drop-shadow-2xl" style={{ animationDelay: '0.2s' }}>
             <TranslatedText fr="L'Excellence du Luxe" en="The Excellence of Luxury">Die Exzellenz des Luxus</TranslatedText>
           </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-base md:text-lg text-white/90 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <p className="mt-6 max-w-2xl mx-auto text-base md:text-lg text-white/95 animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.4s' }}>
              <TranslatedText fr="Découvrez notre sélection exclusive de vêtements et accessoires haut de gamme." en="Discover our exclusive selection of high-end clothing and accessories.">Entdecken Sie unsere exklusive Auswahl an hochwertiger Kleidung und Accessoires.</TranslatedText>
           </p>
-          <Button size="lg" asChild className="mt-8 bg-white text-black hover:bg-white/90 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-            <Link href="/products/all">
+          <Button size="lg" asChild className="mt-8 bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 shadow-lg animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+            <Link href="/products/all" prefetch={true}>
               <TranslatedText fr="Explorer la collection" en="Explore the Collection">Die Kollektion entdecken</TranslatedText>
             </Link>
           </Button>
         </div>
       </section>
 
-      <section className="w-full bg-background py-16 lg:py-24">
+      <section className="w-full bg-gradient-to-b from-background to-muted/30 py-16 lg:py-24">
         <div className="container mx-auto px-4">
-            <h2 className="mb-12 text-center font-headline text-3xl md:text-5xl text-foreground">
-                <TranslatedText fr="Menu Maison" en="Home Menu">Menu Maison</TranslatedText>
-            </h2>
+            <div className="text-center mb-12">
+                <h2 className="font-headline text-3xl md:text-5xl text-foreground mb-4">
+                    <TranslatedText fr="Menu Maison" en="Home Menu">Menu Maison</TranslatedText>
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                    <TranslatedText 
+                        fr="Découvrez nos collections exclusives soigneusement sélectionnées" 
+                        en="Discover our exclusive, carefully curated collections"
+                    >
+                        Entdecken Sie unsere exklusiven, sorgfältig kuratierten Kollektionen
+                    </TranslatedText>
+                </p>
+            </div>
              <Carousel
                 opts={{
                     align: "start",
+                    loop: true,
                 }}
                 className="w-full"
             >
-                <CarouselContent>
+                <CarouselContent className="-ml-2 md:-ml-4">
                     {categories.map((category, index) => (
-                        <CarouselItem key={index} className="basis-4/5 md:basis-1/2 lg:basis-1/3">
+                        <CarouselItem key={category.id || index} className="pl-2 md:pl-4 basis-4/5 md:basis-1/2 lg:basis-1/3">
                              <CategoryCard 
                                 pretitle={<TranslatedText fr="CATÉGORIE" en="CATEGORY">KATEGORIE</TranslatedText>}
                                 title={<TranslatedText fr={category.name_fr} en={category.name_en}>{category.name}</TranslatedText>}
@@ -142,29 +157,33 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative h-[50vh] text-white overflow-hidden">
+      <section className="relative h-[50vh] min-h-[400px] text-white overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="/images/products/hiver.jpg"
             alt="Winter Sale"
             fill
             sizes="100vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-700 hover:scale-105"
             loading="lazy"
-            quality={85}
+            quality={90}
+            onError={(e) => {
+              console.error('Failed to load winter sale image');
+              e.currentTarget.src = '/images/header.jpg';
+            }}
           />
         </div>
-        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-black/30"></div>
         <div className="container relative z-10 mx-auto flex h-full flex-col items-center justify-center px-4 text-center">
-            <p className="text-sm uppercase tracking-widest animate-fade-in-up"><TranslatedText fr="Jusqu'à -40%" en="Up to -40%">Bis zu -40%</TranslatedText></p>
-            <h2 className="mt-4 font-headline text-5xl md:text-7xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <p className="text-sm uppercase tracking-widest text-white/90 animate-fade-in-up font-medium"><TranslatedText fr="Jusqu'à -40%" en="Up to -40%">Bis zu -40%</TranslatedText></p>
+            <h2 className="mt-4 font-headline text-4xl md:text-6xl lg:text-7xl animate-fade-in-up drop-shadow-lg" style={{ animationDelay: '0.2s' }}>
                 <TranslatedText fr="Soldes d'Hiver" en="Winter Sale">Winter-Schlussverkauf</TranslatedText>
             </h2>
-            <p className="mt-6 max-w-xl text-lg text-white/90 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <p className="mt-6 max-w-xl text-lg text-white/95 animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.4s' }}>
                  <TranslatedText fr="Embrassez l'élégance de la saison avec des pièces d'exception à des prix irrésistibles." en="Embrace the elegance of the season with exceptional pieces at irresistible prices.">Umfassen Sie die Eleganz der Saison mit außergewöhnlichen Stücken zu unwiderstehlichen Preisen.</TranslatedText>
             </p>
-            <Button size="lg" asChild className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-                <Link href="/products/winter-clothing"><TranslatedText fr="Découvrir les Offres" en="Discover the Offers">Angebote entdecken</TranslatedText></Link>
+            <Button size="lg" asChild className="mt-8 hover:scale-105 transition-all duration-300 shadow-lg animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+                <Link href="/products/winter-clothing" prefetch={true}><TranslatedText fr="Découvrir les Offres" en="Discover the Offers">Angebote entdecken</TranslatedText></Link>
             </Button>
         </div>
       </section>
@@ -183,17 +202,21 @@ export default function HomePage() {
             </p>
           </div>
           {trendingProducts.length === 0 ? (
-            <div className="text-center mt-12">Chargement des produits...</div>
+            <div className="text-center mt-12 text-muted-foreground">
+              <TranslatedText fr="Chargement des produits..." en="Loading products...">Produkte werden geladen...</TranslatedText>
+            </div>
           ) : (
-            <div className="mt-12 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-              {trendingProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+            <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {trendingProducts.map((product, index) => (
+                <div key={product.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           )}
           <div className="mt-12 text-center">
             <Button asChild size="lg">
-                <Link href="/products/winter-clothing"><TranslatedText fr="Voir toutes les promotions" en="View All Promotions">Alle Angebote anzeigen</TranslatedText></Link>
+                <Link href="/products/winter-clothing" prefetch={true}><TranslatedText fr="Voir toutes les promotions" en="View All Promotions">Alle Angebote anzeigen</TranslatedText></Link>
             </Button>
           </div>
         </div>

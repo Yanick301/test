@@ -62,16 +62,18 @@ export default function EditReviewForm({ review, productId, onReviewUpdated, onC
         }
         
         toast({
-            title: "Avis mis à jour",
-            description: "Votre avis a été modifié avec succès.",
+            title: <TranslatedText fr="Avis mis à jour" en="Review updated">Bewertung aktualisiert</TranslatedText>,
+            description: <TranslatedText fr="Votre avis a été modifié avec succès." en="Your review has been successfully updated.">Ihre Bewertung wurde erfolgreich aktualisiert.</TranslatedText>,
         });
         onReviewUpdated();
     } catch (error: any) {
         console.error("Error updating review:", error);
         toast({
             variant: "destructive",
-            title: "Erreur",
-            description: error.message || "Impossible de modifier l'avis.",
+            title: <TranslatedText fr="Erreur" en="Error">Fehler</TranslatedText>,
+            description: error.message || (
+                <TranslatedText fr="Impossible de modifier l'avis." en="Unable to update the review.">Die Bewertung konnte nicht aktualisiert werden.</TranslatedText>
+            ),
         });
     }
   };

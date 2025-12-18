@@ -19,6 +19,7 @@ import { Separator } from './ui/separator';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { CartButton } from './cart/CartButton';
 import { UserButton } from './auth/UserButton';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -76,6 +77,7 @@ export function Header() {
                           href={`/products/${category.slug}`}
                           className="text-xl text-foreground/80 transition-colors hover:text-foreground"
                           onClick={handleLinkClick}
+                          prefetch={true}
                         >
                           <TranslatedText
                             fr={category.name_fr}
@@ -122,6 +124,7 @@ export function Header() {
                 key={category.id}
                 href={`/products/${category.slug}`}
                 className="transition-colors hover:text-primary text-foreground/80"
+                prefetch={true}
               >
                 <TranslatedText fr={category.name_fr} en={category.name_en}>
                   {category.name}
@@ -132,6 +135,8 @@ export function Header() {
           <div className="hidden lg:flex items-center">
             <Separator orientation="vertical" className="h-6 mx-2" />
             <LanguageSwitcher />
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <ThemeToggle />
           </div>
           
           <SearchDialog />

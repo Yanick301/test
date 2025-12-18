@@ -218,3 +218,6 @@ Votre projet est maintenant connecté à Supabase ! Vous pouvez commencer à uti
 
 
 
+
+
+

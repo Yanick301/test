@@ -102,7 +102,7 @@ export function CartSheetContent() {
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex justify-between">
                     <h4 className="font-medium">
-                      <Link href={`/product/${item.product.slug}`}>
+                      <Link href={`/product/${item.product.slug}`} prefetch={true}>
                         <SheetClose>
                           <TranslatedText
                             fr={item.product.name_fr}

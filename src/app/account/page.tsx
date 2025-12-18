@@ -63,15 +63,17 @@ export default function AccountPage() {
     try {
       await auth.signOut();
       toast({
-        title: language === 'fr' ? 'Déconnecté' : language === 'en' ? 'Logged Out' : 'Abgemeldet',
-        description: language === 'fr' ? 'Vous avez été déconnecté avec succès.' : language === 'en' ? 'You have been successfully logged out.' : 'Sie wurden erfolgreich abgemeldet.',
+        title: <TranslatedText fr="Déconnecté" en="Logged Out">Abgemeldet</TranslatedText>,
+        description: <TranslatedText fr="Vous avez été déconnecté avec succès." en="You have been successfully logged out.">Sie wurden erfolgreich abgemeldet.</TranslatedText>,
       });
       router.push('/login');
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: language === 'fr' ? 'Échec de la déconnexion' : language === 'en' ? 'Logout Failed' : 'Abmeldung fehlgeschlagen',
-        description: error.message,
+        title: <TranslatedText fr="Échec de la déconnexion" en="Logout Failed">Abmeldung fehlgeschlagen</TranslatedText>,
+        description: error.message || (
+          <TranslatedText fr="Une erreur s'est produite lors de la déconnexion." en="An error occurred during logout.">Bei der Abmeldung ist ein Fehler aufgetreten.</TranslatedText>
+        ),
       });
     }
   };
@@ -85,8 +87,8 @@ export default function AccountPage() {
      if (file.size > 1 * 1024 * 1024) { 
         toast({
             variant: "destructive",
-            title: language === 'fr' ? "Fichier trop volumineux" : language === 'en' ? "File too large" : "Datei zu groß",
-            description: language === 'fr' ? "La taille de l'image doit être inférieure à 1 Mo." : language === 'en' ? "Image size must be less than 1MB." : "Die Bildgröße muss weniger als 1 MB betragen.",
+            title: <TranslatedText fr="Fichier trop volumineux" en="File too large">Datei zu groß</TranslatedText>,
+            description: <TranslatedText fr="La taille de l'image doit être inférieure à 1 Mo." en="Image size must be less than 1MB.">Die Bildgröße muss weniger als 1 MB betragen.</TranslatedText>,
         });
         return;
     }
@@ -105,15 +107,17 @@ export default function AccountPage() {
         if (error) throw error;
         
         toast({
-            title: language === 'fr' ? "Photo de profil mise à jour" : language === 'en' ? "Profile picture updated" : "Profilbild aktualisiert",
-            description: language === 'fr' ? "Votre nouvelle photo de profil a été enregistrée." : language === 'en' ? "Your new profile picture has been saved." : "Ihr neues Profilbild wurde gespeichert.",
+            title: <TranslatedText fr="Photo de profil mise à jour" en="Profile picture updated">Profilbild aktualisiert</TranslatedText>,
+            description: <TranslatedText fr="Votre nouvelle photo de profil a été enregistrée." en="Your new profile picture has been saved.">Ihr neues Profilbild wurde gespeichert.</TranslatedText>,
         });
 
     } catch (error: any) {
        toast({
         variant: "destructive",
-        title: language === 'fr' ? "Erreur de téléversement" : language === 'en' ? "Upload Error" : "Upload-Fehler",
-        description: error?.message || (language === 'fr' ? "Impossible de mettre à jour la photo de profil." : language === 'en' ? "Could not update profile picture." : "Profilbild konnte nicht aktualisiert werden."),
+        title: <TranslatedText fr="Erreur de téléversement" en="Upload Error">Upload-Fehler</TranslatedText>,
+        description: error?.message || (
+          <TranslatedText fr="Impossible de mettre à jour la photo de profil." en="Could not update profile picture.">Profilbild konnte nicht aktualisiert werden.</TranslatedText>
+        ),
       });
     } finally {
         setIsUploading(false);

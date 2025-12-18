@@ -67,8 +67,8 @@ export default function RegisterPageClient() {
     if (!supabase) {
       toast({
         variant: "destructive",
-        title: "Configuration Error",
-        description: "Supabase services are not available.",
+        title: <TranslatedText fr="Erreur de configuration" en="Configuration Error">Konfigurationsfehler</TranslatedText>,
+        description: <TranslatedText fr="Les services Supabase ne sont pas disponibles." en="Supabase services are not available.">Supabase-Dienste sind nicht verfügbar.</TranslatedText>,
       });
       return;
     }
@@ -78,6 +78,7 @@ export default function RegisterPageClient() {
       const lastName = data.name.split(' ').slice(1).join(' ') || '';
 
       // Step 1: Create the user in Supabase Auth
+      const siteUrl = window.location.origin;
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -86,7 +87,7 @@ export default function RegisterPageClient() {
             first_name: firstName,
             last_name: lastName,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/account`,
+          emailRedirectTo: `${siteUrl}/auth/callback?next=/account`,
         },
       });
 
