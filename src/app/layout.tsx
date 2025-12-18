@@ -6,8 +6,8 @@ import { AppProviders } from '@/components/AppProviders';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/toaster';
-import { SkipLink } from '@/components/SkipLink';
 import { DynamicLang } from '@/components/DynamicLang';
+import { CookieConsent } from '@/components/CookieConsent';
 import { cn } from '@/lib/utils';
 
 const inter = Inter({
@@ -64,7 +64,6 @@ export default function RootLayout({
         )}
       >
         <AppProviders>
-          <SkipLink />
           <DynamicLang />
           <div className="relative z-10 flex min-h-screen flex-col">
             <Header />
@@ -72,6 +71,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <CookieConsent />
         </AppProviders>
       </body>
     </html>

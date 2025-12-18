@@ -128,3 +128,8 @@ La table `orders` dans Supabase contient :
 - Les statuts sont synchronisés en temps réel grâce aux subscriptions Supabase
 
 
+
+
+
+
+
