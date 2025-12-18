@@ -75,11 +75,15 @@ export function safeSetLocalStorage(key: string, value: string): boolean {
 
 /**
  * Validate order ID format
+ * Accepts both UUID format (from Supabase) and legacy local_ format
  */
 export function isValidOrderId(orderId: string | null): boolean {
   if (!orderId) return false;
-  // Order IDs should start with 'local_' and contain alphanumeric characters, underscores, and hyphens
-  return /^local_\d+_[a-z0-9]+$/.test(orderId);
+  // UUID format (from Supabase): 8-4-4-4-12 hexadecimal characters
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  // Legacy local_ format for backward compatibility
+  const localRegex = /^local_\d+_[a-z0-9]+$/;
+  return uuidRegex.test(orderId) || localRegex.test(orderId);
 }
 
 /**

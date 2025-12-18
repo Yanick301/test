@@ -113,9 +113,10 @@ export function Header() {
                 </nav>
               </main>
               <footer className="border-t p-6">
-                <div className="flex items-center justify-between" onClick={() => setIsSheetOpen(false)}>
+                <div className="flex items-center justify-between gap-4" onClick={() => setIsSheetOpen(false)}>
                    <UserButton />
                    <LanguageSwitcher />
+                   <ThemeToggle />
                 </div>
               </footer>
             </SheetContent>

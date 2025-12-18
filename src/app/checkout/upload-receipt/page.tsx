@@ -187,16 +187,16 @@ function UploadReceiptPageComponent() {
                   Bestellübersicht
                 </TranslatedText>
               </h4>
-              <ul className="divide-y text-sm">
+              <ul className="divide-y divide-border text-sm">
                 {order.items.map((item) => (
                   <li key={item.id} className="flex justify-between py-2">
-                    <span>
+                    <span className="text-foreground">
                       {item.quantity} x{' '}
                       <TranslatedText fr={item.name_fr} en={item.name_en}>
                         {item.name}
                       </TranslatedText>
                     </span>
-                    <span>€{(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="text-foreground font-medium">€{(item.price * item.quantity).toFixed(2)}</span>
                   </li>
                 ))}
               </ul>
@@ -204,20 +204,20 @@ function UploadReceiptPageComponent() {
               <div className="space-y-1 text-sm">
                  <div className="flex justify-between">
                     <span className='text-muted-foreground'><TranslatedText fr="Sous-total" en="Subtotal">Zwischensumme</TranslatedText></span>
-                    <span>€{order.subtotal.toFixed(2)}</span>
+                    <span className="text-foreground">€{order.subtotal.toFixed(2)}</span>
                 </div>
                  <div className="flex justify-between">
                     <span className='text-muted-foreground'><TranslatedText fr="Livraison" en="Shipping">Versand</TranslatedText></span>
-                    <span>€{order.shipping.toFixed(2)}</span>
+                    <span className="text-foreground">€{order.shipping.toFixed(2)}</span>
                 </div>
                  <div className="flex justify-between">
                     <span className='text-muted-foreground'><TranslatedText fr="Taxes" en="Taxes">Steuern</TranslatedText> ({taxPercentage}%)</span>
-                    <span>€{order.taxes.toFixed(2)}</span>
+                    <span className="text-foreground">€{order.taxes.toFixed(2)}</span>
                 </div>
               </div>
 
               <Separator className="my-2" />
-              <div className="flex justify-between font-semibold">
+              <div className="flex justify-between font-semibold text-foreground">
                 <span>Total</span>
                 <span>€{order.totalAmount.toFixed(2)}</span>
               </div>
@@ -228,7 +228,7 @@ function UploadReceiptPageComponent() {
                         Lieferadresse
                     </TranslatedText>
                 </h4>
-                <address className="text-sm not-italic text-muted-foreground">
+                <address className="text-sm not-italic text-foreground">
                     {order.shippingInfo.name}<br />
                     {order.shippingInfo.address}<br />
                     {order.shippingInfo.zip} {order.shippingInfo.city}<br />
@@ -247,7 +247,7 @@ function UploadReceiptPageComponent() {
 
 export default function UploadReceiptPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Suspense
         fallback={
           <div className="flex items-center gap-2">

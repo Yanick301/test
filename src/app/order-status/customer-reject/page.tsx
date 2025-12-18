@@ -7,6 +7,7 @@ import { Loader2, XCircle, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { TranslatedText } from '@/components/TranslatedText';
 import { sendCustomerRejectionEmail } from '@/app/actions/emailActions';
+import { updateOrderStatus } from '@/app/actions/orderActions';
 import { cn } from '@/lib/utils';
 import { decodeBase64, safeJsonParse, safeSetLocalStorage, isValidOrderId, isValidEmail } from '@/lib/security';
 
@@ -52,31 +53,36 @@ function CustomerRejectClientPage() {
 
     const processRejection = async () => {
       try {
+        // Mettre à jour le statut dans Supabase
+        const updateResult = await updateOrderStatus({ orderId, status: 'rejected' });
+        
+        if (!updateResult.success) {
+          setStatus('error');
+          setMessage(updateResult.error || 'Impossible de mettre à jour le statut de la commande.');
+          return;
+        }
+
+        // Envoyer l'email de rejet au client
         const result = await sendCustomerRejectionEmail({ userEmail: decodedEmail, orderId });
         
         if (result.success) {
+          // Mettre à jour aussi localStorage pour compatibilité
           try {
             const statusUpdates = safeJsonParse<Record<string, string>>(
               localStorage.getItem('orderStatusUpdates'),
               {}
             );
             statusUpdates[orderId] = 'rejected';
-            const success = safeSetLocalStorage('orderStatusUpdates', JSON.stringify(statusUpdates));
-            if (success) {
-              setStatus('success');
-              setMessage(`La commande #${orderId} a été marquée comme "rejetée". Le client en sera notifié par e-mail.`);
-            } else {
-              setStatus('error');
-              setMessage('L\'e-mail a été envoyé, mais le statut local n\'a pas pu être mis à jour.');
-            }
+            safeSetLocalStorage('orderStatusUpdates', JSON.stringify(statusUpdates));
           } catch (e) {
             console.warn('Could not update order status in local storage.', e);
-            setStatus('error');
-            setMessage('L\'e-mail a été envoyé, mais le statut local n\'a pas pu être mis à jour.');
           }
+          
+          setStatus('success');
+          setMessage(`La commande #${orderId} a été marquée comme "rejetée". Le client en sera notifié par e-mail.`);
         } else {
           setStatus('error');
-          setMessage(result.error || 'Échec de l\'envoi de l\'e-mail de rejet.');
+          setMessage(result.error || 'Le statut a été mis à jour, mais l\'e-mail de rejet n\'a pas pu être envoyé.');
         }
       } catch (e: any) {
         console.error('Error processing rejection:', e);

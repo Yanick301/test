@@ -35,7 +35,7 @@ export async function sendReceiptEmail(input: SendReceiptInput) {
     SendReceiptInput.parse(input)
 
   const resendApiKey = process.env.RESEND_API_KEY
-  const adminEmail = process.env.ADMIN_EMAIL
+  const adminEmail = process.env.ADMIN_EMAIL || 'ezcentials@gmail.com'
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'EZCENTIALS <onboarding@resend.dev>';
 
 

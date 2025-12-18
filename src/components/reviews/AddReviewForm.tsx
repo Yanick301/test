@@ -40,8 +40,8 @@ export default function AddReviewForm({ productId }: { productId: string }) {
     if (!user || !supabase) {
       toast({
         variant: 'destructive',
-        title: 'Vous devez être connecté',
-        description: "Connectez-vous pour laisser un avis.",
+        title: <TranslatedText fr="Vous devez être connecté" en="You must be logged in">Sie müssen angemeldet sein</TranslatedText>,
+        description: <TranslatedText fr="Connectez-vous pour laisser un avis." en="Log in to leave a review.">Melden Sie sich an, um eine Bewertung abzugeben.</TranslatedText>,
       });
       return;
     }
@@ -71,8 +71,8 @@ export default function AddReviewForm({ productId }: { productId: string }) {
         }
         
         toast({
-          title: "Avis ajouté !",
-          description: "Merci pour votre contribution. Votre avis sera visible après un court instant.",
+          title: <TranslatedText fr="Avis ajouté !" en="Review added!">Bewertung hinzugefügt!</TranslatedText>,
+          description: <TranslatedText fr="Merci pour votre contribution. Votre avis sera visible après un court instant." en="Thank you for your contribution. Your review will be visible shortly.">Vielen Dank für Ihren Beitrag. Ihre Bewertung wird in Kürze sichtbar sein.</TranslatedText>,
         });
 
         reset();
@@ -81,8 +81,8 @@ export default function AddReviewForm({ productId }: { productId: string }) {
         console.error("Error adding review: ", error);
         toast({
             variant: "destructive",
-            title: "Erreur",
-            description: error.message || "Impossible d'ajouter l'avis. Veuillez réessayer.",
+            title: <TranslatedText fr="Erreur" en="Error">Fehler</TranslatedText>,
+            description: error.message || <TranslatedText fr="Impossible d'ajouter l'avis. Veuillez réessayer." en="Unable to add review. Please try again.">Bewertung konnte nicht hinzugefügt werden. Bitte versuchen Sie es erneut.</TranslatedText>,
         });
     }
   };
