@@ -142,6 +142,28 @@ def scrape_products():
             product_links = soup.find_all('a', href=re.compile(r'/product', re.I))
             print(f"  Trouvé {len(product_links)} liens produits potentiels")
             
+            # Chercher aussi dans les scripts JSON pour les données produits
+            scripts = soup.find_all('script', type='application/json')
+            for script in scripts:
+                try:
+                    data = json.loads(script.string)
+                    # Chercher des produits dans les données JSON
+                    if isinstance(data, dict):
+                        if 'products' in data:
+                            for prod in data['products']:
+                                product = parse_shopify_product(prod)
+                                if product:
+                                    products.append(product)
+                        # Chercher dans les collections
+                        for key in data.keys():
+                            if 'product' in key.lower() and isinstance(data[key], list):
+                                for prod in data[key]:
+                                    product = parse_shopify_product(prod)
+                                    if product:
+                                        products.append(product)
+                except:
+                    pass
+            
             seen_urls = set()
             for link in product_links:
                 href = link.get('href', '')
@@ -160,9 +182,37 @@ def scrape_products():
                     if product and is_valid_product(product.get('name', ''), product_url):
                         products.append(product)
                         print(f"  ✓ Produit ajouté: {product.get('name', '')[:50]}")
-                        time.sleep(1)  # Pause pour ne pas surcharger le serveur
-                    if len(products) >= 200:  # Limiter à 200 produits
+                        time.sleep(0.5)  # Pause réduite
+                    if len(products) >= 500:  # Augmenter la limite
                         break
+            
+            # Essayer de paginer si possible
+            if len(products) < 50:
+                # Chercher des liens de pagination
+                pagination_links = soup.find_all('a', href=re.compile(r'page|p=\d+', re.I))
+                for page_link in pagination_links[:5]:  # Limiter à 5 pages
+                    try:
+                        page_url = urljoin(SOURCE_SITE, page_link.get('href', ''))
+                        print(f"  Scraping page suivante: {page_url}")
+                        page_response = requests.get(page_url, headers=headers, timeout=30)
+                        if page_response.status_code == 200:
+                            page_soup = BeautifulSoup(page_response.text, 'html.parser')
+                            page_product_links = page_soup.find_all('a', href=re.compile(r'/product', re.I))
+                            for link in page_product_links:
+                                href = link.get('href', '')
+                                if href not in seen_urls:
+                                    seen_urls.add(href)
+                                    product_url = urljoin(SOURCE_SITE, href)
+                                    if '/product' in product_url.lower():
+                                        product = scrape_product_page(product_url)
+                                        if product and is_valid_product(product.get('name', ''), product_url):
+                                            products.append(product)
+                                            time.sleep(0.5)
+                                        if len(products) >= 500:
+                                            break
+                        time.sleep(1)
+                    except:
+                        continue
         else:
             print(f"  Trouvé {len(product_elements)} éléments produits")
             seen_urls = set()
@@ -176,7 +226,7 @@ def scrape_products():
                     if product_url:
                         seen_urls.add(product_url)
                     products.append(product)
-                    if len(products) >= 200:  # Limiter à 200 produits
+                    if len(products) >= 500:  # Augmenter la limite
                         break
         
     except Exception as e:
@@ -204,13 +254,19 @@ def parse_shopify_product(product_data):
             soup = BeautifulSoup(description, 'html.parser')
             description = soup.get_text(strip=True)
         
-        # Image
+        # Images (récupérer toutes les images, pas seulement la première)
         images = product_data.get('images', [])
-        image_url = None
+        image_urls = []
         if images:
-            image_url = images[0].get('src', '')
-            if image_url and not image_url.startswith('http'):
-                image_url = 'https:' + image_url
+            for img in images:
+                img_url = img.get('src', '')
+                if img_url:
+                    if not img_url.startswith('http'):
+                        img_url = 'https:' + img_url
+                    image_urls.append(img_url)
+        
+        # Utiliser la première image comme image principale pour compatibilité
+        image_url = image_urls[0] if image_urls else None
         
         # URL
         handle = product_data.get('handle', '')
@@ -224,6 +280,7 @@ def parse_shopify_product(product_data):
             'name': name,
             'price': price,
             'image_url': image_url,
+            'image_urls': image_urls,  # Toutes les images
             'url': url,
             'description': description,
             'gender': gender
@@ -366,27 +423,38 @@ def scrape_product_page(url):
             if meta_desc:
                 description = meta_desc.get('content', '')
         
-        # Extraire l'image principale - chercher la meilleure image
-        image_url = None
+        # Extraire toutes les images du produit
+        image_urls = []
         # Chercher dans les images avec des classes product
-        img_elems = soup.find_all('img', class_=re.compile(r'product|main|featured|hero', re.I))
+        img_elems = soup.find_all('img', class_=re.compile(r'product|main|featured|hero|gallery', re.I))
         if not img_elems:
-            # Chercher toutes les images et prendre la plus grande
+            # Chercher toutes les images
             img_elems = soup.find_all('img')
         
+        seen_srcs = set()
         for img_elem in img_elems:
-            src = img_elem.get('src') or img_elem.get('data-src') or img_elem.get('data-lazy-src')
+            src = img_elem.get('src') or img_elem.get('data-src') or img_elem.get('data-lazy-src') or img_elem.get('data-original')
             if src:
                 # Éviter les logos et icônes
                 if any(x in src.lower() for x in ['logo', 'icon', 'avatar', 'placeholder']):
                     continue
-                image_url = urljoin(SOURCE_SITE, src)
-                break
+                # Nettoyer l'URL
+                if not src.startswith('http'):
+                    src = urljoin(SOURCE_SITE, src)
+                if src not in seen_srcs:
+                    image_urls.append(src)
+                    seen_srcs.add(src)
+                    if len(image_urls) >= 5:  # Limiter à 5 images max
+                        break
+        
+        # Utiliser la première comme image principale pour compatibilité
+        image_url = image_urls[0] if image_urls else None
         
         return {
             'name': name,
             'price': price,
             'image_url': image_url,
+            'image_urls': image_urls,  # Toutes les images
             'url': url,
             'description': description
         }
@@ -442,8 +510,14 @@ def create_product_entry(watch_data, index, gender=None):
     description_en = description  # À traduire si nécessaire
     description_de = description  # À traduire si nécessaire
     
-    # Nom de l'image
+    # Nom de l'image (sera mis à jour avec toutes les images téléchargées)
     image_id = slug.replace('-', '_')
+    image_ids = [image_id]  # Au moins une image
+    
+    # Récupérer toutes les URLs d'images disponibles
+    image_urls = watch_data.get('image_urls', [])
+    if not image_urls and watch_data.get('image_url'):
+        image_urls = [watch_data.get('image_url')]
     
     product = {
         'id': product_id,
@@ -458,15 +532,34 @@ def create_product_entry(watch_data, index, gender=None):
         'description_en': description_en,
         'category': category,
         'subcategory': subcategory,
-        'images': [image_id],
+        'images': image_ids,  # Sera mis à jour après téléchargement
         'sizes': None,  # Les montres n'ont généralement pas de tailles
         'colors': None
     }
     
-    return product, image_id, watch_data.get('image_url')
+    return product, image_ids, image_urls
 
 def main():
     print("🚀 Début de l'importation des montres depuis temps-et-merveilles.fr\n")
+    
+    # Vérifier le nombre actuel
+    MAX_TOTAL_PRODUCTS = 1100
+    try:
+        with open(NEW_PRODUCTS_FILE, 'r', encoding='utf-8') as f:
+            existing_products = json.load(f)
+        current_count = len(existing_products)
+        remaining = MAX_TOTAL_PRODUCTS - current_count
+        print(f"📊 Produits actuels: {current_count}")
+        print(f"📊 Produits restants: {remaining}")
+        print(f"📊 Limite maximale: {MAX_TOTAL_PRODUCTS}\n")
+        
+        if remaining <= 0:
+            print("⚠️  Limite de 1100 produits atteinte!")
+            return
+    except:
+        existing_products = []
+        current_count = 0
+        remaining = MAX_TOTAL_PRODUCTS
     
     # Scraper les produits
     watches = scrape_products()
@@ -475,7 +568,11 @@ def main():
         print("\n❌ Aucun produit trouvé. Vérifiez l'URL et la structure du site.")
         return
     
-    print(f"\n✓ {len(watches)} produits trouvés\n")
+    print(f"\n✓ {len(watches)} produits trouvés")
+    
+    # Limiter le nombre selon la limite restante
+    watches = watches[:remaining]
+    print(f"📊 Limitation à {len(watches)} produits pour respecter la limite de {MAX_TOTAL_PRODUCTS}\n")
     
     # Charger les fichiers existants
     try:
@@ -505,27 +602,42 @@ def main():
         print(f"  Genre détecté: {gender}")
         
         # Créer l'entrée produit
-        product, image_id, image_url = create_product_entry(watch, i, gender)
+        product, image_ids, image_urls = create_product_entry(watch, i, gender)
         
-        # Télécharger l'image
-        if image_url:
-            image_filename = f"{image_id}.jpg"
-            image_path = os.path.join(PRODUCTS_DIR, image_filename)
-            image_relative_path = f"/images/products/{image_filename}"
-            
-            if download_image(image_url, image_path):
-                # Ajouter à placeholder_images
-                new_images.append({
-                    'id': image_id,
-                    'description': product['name_fr'],
-                    'imageUrl': image_relative_path,
-                    'imageHint': 'watch'
-                })
-                print(f"  ✓ Image ajoutée: {image_id}")
-            else:
-                print(f"  ⚠ Image non téléchargée, utilisation d'un placeholder")
+        # Télécharger les images (toutes les images disponibles)
+        if not image_urls and watch.get('image_url'):
+            image_urls = [watch.get('image_url')]
+        
+        downloaded_image_ids = []
+        if image_urls:
+            for j, img_url in enumerate(image_urls[:3]):  # Max 3 images par produit
+                if j < len(image_ids):
+                    img_id = image_ids[j]
+                else:
+                    img_id = f"{image_ids[0]}_{j+1}"
+                
+                image_filename = f"{img_id}.jpg"
+                image_path = os.path.join(PRODUCTS_DIR, image_filename)
+                image_relative_path = f"/images/products/{image_filename}"
+                
+                if download_image(img_url, image_path):
+                    # Ajouter à placeholder_images
+                    new_images.append({
+                        'id': img_id,
+                        'description': product['name_fr'],
+                        'imageUrl': image_relative_path,
+                        'imageHint': 'watch'
+                    })
+                    downloaded_image_ids.append(img_id)
+                    print(f"  ✓ Image {j+1} téléchargée: {img_id}")
+                else:
+                    print(f"  ⚠ Image {j+1} non téléchargée")
+        
+        # Mettre à jour la liste d'images du produit avec seulement celles téléchargées
+        if downloaded_image_ids:
+            product['images'] = downloaded_image_ids
         else:
-            print(f"  ⚠ Aucune image trouvée pour ce produit")
+            print(f"  ⚠ Aucune image téléchargée pour ce produit")
         
         new_products.append(product)
     

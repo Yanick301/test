@@ -303,19 +303,25 @@ def main():
         current_count = len(existing_products)
         remaining = MAX_TOTAL_PRODUCTS - current_count
         print(f"📊 Produits actuels: {current_count}")
-        print(f"📊 Produits restants: {remaining}\n")
+        print(f"📊 Produits restants: {remaining}")
+        print(f"📊 Limite maximale: {MAX_TOTAL_PRODUCTS}\n")
         
         if remaining <= 0:
             print("⚠️  Limite de 1100 produits atteinte!")
+            print("   Utilisez limit_products_to_1100.py pour nettoyer si nécessaire.")
             return
         
         products_data = products_data[:remaining]
-        print(f"📊 Limitation à {len(products_data)} produits\n")
+        print(f"📊 Limitation à {len(products_data)} produits pour respecter la limite\n")
     except:
         existing_products = []
         current_count = 0
         remaining = MAX_TOTAL_PRODUCTS
         products_data = products_data[:remaining]
+        print(f"📊 Produits actuels: 0")
+        print(f"📊 Produits restants: {remaining}")
+        print(f"📊 Limite maximale: {MAX_TOTAL_PRODUCTS}\n")
+        print(f"📊 Limitation à {len(products_data)} produits\n")
     
     # Charger les images existantes
     try:
@@ -393,4 +399,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 

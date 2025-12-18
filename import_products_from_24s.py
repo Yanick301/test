@@ -533,15 +533,20 @@ def main():
         current_count = len(existing_products)
         print(f"📊 Produits actuels: {current_count}")
         remaining = MAX_TOTAL_PRODUCTS - current_count
-        print(f"📊 Produits restants: {remaining}\n")
+        print(f"📊 Produits restants: {remaining}")
+        print(f"📊 Limite maximale: {MAX_TOTAL_PRODUCTS}\n")
         
         if remaining <= 0:
             print("⚠️  Limite de 1100 produits atteinte!")
+            print("   Utilisez limit_products_to_1100.py pour nettoyer si nécessaire.")
             return
     except:
         existing_products = []
         current_count = 0
         remaining = MAX_TOTAL_PRODUCTS
+        print(f"📊 Produits actuels: 0")
+        print(f"📊 Produits restants: {remaining}")
+        print(f"📊 Limite maximale: {MAX_TOTAL_PRODUCTS}\n")
     
     # Scraper les produits
     products_data = scrape_products()
