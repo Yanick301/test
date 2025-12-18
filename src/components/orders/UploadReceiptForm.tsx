@@ -170,7 +170,7 @@ export default function UploadReceiptForm({ order, onReceiptUploaded }: UploadRe
         receiptDataUrl,
         orderDetailsHtml,
         userEmail: order.shippingInfo.email,
-        siteUrl: window.location.origin,
+        siteUrl: process.env.NEXT_PUBLIC_SITE_URL || window.location.origin,
       })
 
       if (!emailResult.success) {

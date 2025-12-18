@@ -419,7 +419,7 @@ export default function ProductPage() {
                   </div>
                 )}
               </div>
-              <AddReviewForm productId={product.id} />
+              <AddReviewForm productId={product.id} product={product} />
             </TabsContent>
           </Tabs>
         </div>

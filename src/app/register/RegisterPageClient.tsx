@@ -78,7 +78,7 @@ export default function RegisterPageClient() {
       const lastName = data.name.split(' ').slice(1).join(' ') || '';
 
       // Step 1: Create the user in Supabase Auth
-      const siteUrl = window.location.origin;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,

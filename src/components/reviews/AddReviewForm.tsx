@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { TranslatedText } from '@/components/TranslatedText';
-import type { Review } from '@/lib/types';
+import type { Review, Product } from '@/lib/types';
 import { sanitizeReviewComment } from '@/lib/security';
 
 
@@ -24,7 +24,7 @@ const reviewSchema = z.object({
 
 type ReviewFormValues = z.infer<typeof reviewSchema>;
 
-export default function AddReviewForm({ productId }: { productId: string }) {
+export default function AddReviewForm({ productId, product }: { productId: string; product?: Product }) {
   const { user, profile } = useUser();
   const { supabase } = useSupabase();
   const { toast } = useToast();
@@ -47,6 +47,45 @@ export default function AddReviewForm({ productId }: { productId: string }) {
     }
 
     try {
+        // Vérifier si le produit existe dans Supabase, sinon le créer
+        const { data: existingProduct, error: checkError } = await supabase
+          .from('products')
+          .select('id')
+          .eq('id', productId)
+          .single();
+
+        if (checkError && checkError.code === 'PGRST116' && product) {
+          // Le produit n'existe pas, le créer
+          const productData = {
+            id: product.id,
+            name: product.name,
+            name_fr: product.name_fr,
+            name_en: product.name_en,
+            slug: product.slug,
+            price: product.price,
+            old_price: product.oldPrice || null,
+            description: product.description,
+            description_fr: product.description_fr,
+            description_en: product.description_en,
+            category: product.category,
+            images: product.images || [],
+            sizes: product.sizes || null,
+            colors: product.colors || null,
+          };
+
+          const { error: insertError } = await supabase
+            .from('products')
+            .insert(productData);
+
+          if (insertError) {
+            console.error('Error creating product in Supabase:', insertError);
+            // Continuer quand même, peut-être que le produit existe déjà
+          }
+        } else if (checkError && checkError.code !== 'PGRST116') {
+          // Autre erreur
+          console.error('Error checking product:', checkError);
+        }
+
         // Sanitize comment to prevent XSS
         const sanitizedComment = sanitizeReviewComment(data.comment);
         

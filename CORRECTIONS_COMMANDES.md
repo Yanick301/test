@@ -127,3 +127,4 @@ La table `orders` dans Supabase contient :
 - Les boutons dans l'email fonctionnent même si JavaScript est désactivé (liens directs)
 - Les statuts sont synchronisés en temps réel grâce aux subscriptions Supabase
 
+

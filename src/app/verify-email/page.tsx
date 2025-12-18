@@ -60,7 +60,7 @@ export default function VerifyEmailPage() {
     
     setIsResending(true);
     try {
-      const siteUrl = window.location.origin;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: user.email,
