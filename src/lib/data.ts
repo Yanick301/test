@@ -15355,8 +15355,8 @@ export const products: Product[] = [
     images: ["classique-winter-50"],
     sizes: ["S", "M", "L", "XL"],
     colors: [{"name_de": "Grün", "name_fr": "Vert", "name_en": "Green"}, {"name_de": "Bordeauxrot", "name_fr": "Bordeaux", "name_en": "Burgundy"}, {"name_de": "Blau", "name_fr": "Bleu", "name_en": "Blue"}],
-  }
-
+  },
+];
 
 // --- Liste des IDs des produits tendance pour la page d'accueil ---
 // Modifiez cette liste pour changer les produits affichés.

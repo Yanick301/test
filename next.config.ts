@@ -30,7 +30,6 @@ const nextConfig: NextConfig = {
     ],
   },
   // Optimize production builds
-  swcMinify: true,
   compress: true,
   // Enable React strict mode for better performance
   reactStrictMode: true,
