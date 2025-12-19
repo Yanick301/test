@@ -54,6 +54,16 @@ export function findProductImage(imageId: string) {
     return placeholderImage;
   }
 
+  // Pour les images de catégories (qui se terminent par -category),
+  // chercher dans /images/ au lieu de /images/products/
+  if (imageId.endsWith('-category')) {
+    return {
+      id: imageId,
+      imageUrl: `/images/${imageId}.jpg`,
+      imageHint: 'category',
+    };
+  }
+
   // Générer un objet image depuis l'ID
   // On essaie d'abord .jpg (le plus commun), mais le navigateur essaiera aussi .png, .webp, etc.
   // Si l'image n'existe pas, onError dans les composants affichera le logo
