@@ -3459,6 +3459,12 @@ export function getProductsByCategory(products: Product[], categorySlug: string,
   return filteredProducts.sort((a, b) => a.id.localeCompare(b.id));;
 }
 
+export function getProductsBySubcategory(products: Product[], categorySlug: string, subcategorySlug: string): Product[] {
+  return products.filter((p) => 
+    p.category === categorySlug && p.subcategory === subcategorySlug
+  ).sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export function getProductBySlug(products: Product[], slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
 }
