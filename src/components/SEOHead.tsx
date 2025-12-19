@@ -121,3 +121,4 @@ export function SEOHead({ product, category, type = 'default' }: SEOHeadProps) {
 
 
 
+
