@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 declare global {
@@ -15,7 +15,7 @@ interface AnalyticsProps {
   plausibleDomain?: string;
 }
 
-export function Analytics({ gaId, plausibleDomain }: AnalyticsProps) {
+function AnalyticsContent({ gaId, plausibleDomain }: AnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -38,7 +38,11 @@ export function Analytics({ gaId, plausibleDomain }: AnalyticsProps) {
     }
   }, [pathname, searchParams, gaId, plausibleDomain]);
 
-  // Scripts pour charger les analytics
+  return null;
+}
+
+export function Analytics({ gaId, plausibleDomain }: AnalyticsProps) {
+  // Scripts pour charger les analytics (chargés côté serveur)
   return (
     <>
       {gaId && (
@@ -68,6 +72,9 @@ export function Analytics({ gaId, plausibleDomain }: AnalyticsProps) {
           src="https://plausible.io/js/script.js"
         />
       )}
+      <Suspense fallback={null}>
+        <AnalyticsContent gaId={gaId} plausibleDomain={plausibleDomain} />
+      </Suspense>
     </>
   );
 }
@@ -118,4 +125,5 @@ export function useAnalytics() {
     trackAddToCart,
   };
 }
+
 
