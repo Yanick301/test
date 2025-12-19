@@ -154,6 +154,10 @@ export interface Database {
           order_date: string;
           payment_status: 'pending' | 'processing' | 'completed' | 'rejected';
           receipt_image_url: string | null;
+          shipping_status: 'preparing' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled';
+          tracking_number: string | null;
+          shipped_at: string | null;
+          delivered_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -169,6 +173,10 @@ export interface Database {
           order_date?: string;
           payment_status?: 'pending' | 'processing' | 'completed' | 'rejected';
           receipt_image_url?: string | null;
+          shipping_status?: 'preparing' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled';
+          tracking_number?: string | null;
+          shipped_at?: string | null;
+          delivered_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -184,6 +192,10 @@ export interface Database {
           order_date?: string;
           payment_status?: 'pending' | 'processing' | 'completed' | 'rejected';
           receipt_image_url?: string | null;
+          shipping_status?: 'preparing' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled';
+          tracking_number?: string | null;
+          shipped_at?: string | null;
+          delivered_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

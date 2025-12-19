@@ -24,6 +24,7 @@ import {
   Ban,
   Upload,
   Clock,
+  Truck,
 } from 'lucide-react';
 import { useUser, useSupabase } from '@/supabase';
 import { Badge } from '@/components/ui/badge';
@@ -58,6 +59,10 @@ interface Order {
   order_date: string;
   payment_status: 'pending' | 'processing' | 'completed' | 'rejected';
   receipt_image_url: string | null;
+  shipping_status: 'preparing' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled';
+  tracking_number: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -84,6 +89,10 @@ function normalizeOrder(row: OrderRow): Order {
     ...row,
     shipping_info: normalizeShippingInfo(row.shipping_info),
     items: normalizeItems(row.items),
+    shipping_status: (row.shipping_status as Order['shipping_status']) || 'preparing',
+    tracking_number: row.tracking_number || null,
+    shipped_at: row.shipped_at || null,
+    delivered_at: row.delivered_at || null,
   };
 }
 
@@ -405,15 +414,27 @@ export default function OrdersPage() {
                 )}
 
                 {order.payment_status === 'completed' && (
-                  <div className="mt-6 flex flex-col items-center justify-center rounded-md bg-green-50 p-4 text-sm font-semibold text-green-700">
-                    <div className="flex items-center">
-                      <CheckCircle className="mr-2 h-5 w-5" />
-                      <p>
-                        <TranslatedText fr="Paiement validé" en="Payment validated">
-                          Zahlung bestätigt
-                        </TranslatedText>
-                      </p>
+                  <div className="mt-6 space-y-4">
+                    <div className="flex flex-col items-center justify-center rounded-md bg-green-50 p-4 text-sm font-semibold text-green-700">
+                      <div className="flex items-center">
+                        <CheckCircle className="mr-2 h-5 w-5" />
+                        <p>
+                          <TranslatedText fr="Paiement validé" en="Payment validated">
+                            Zahlung bestätigt
+                          </TranslatedText>
+                        </p>
+                      </div>
                     </div>
+                    {(order.shipping_status !== 'preparing' || order.tracking_number) && (
+                      <Button asChild variant="outline" className="w-full">
+                        <Link href={`/tracking/${order.id}`}>
+                          <Truck className="mr-2 h-4 w-4" />
+                          <TranslatedText fr="Suivre la livraison" en="Track Delivery">
+                            Lieferung verfolgen
+                          </TranslatedText>
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 )}
 

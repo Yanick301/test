@@ -8,6 +8,8 @@ import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { DynamicLang } from '@/components/DynamicLang';
 import { CookieConsent } from '@/components/CookieConsent';
+import { Analytics } from '@/components/Analytics';
+import { AccessibilityEnhancer } from '@/components/Accessibility';
 import { cn } from '@/lib/utils';
 
 const inter = Inter({
@@ -64,10 +66,15 @@ export default function RootLayout({
         )}
       >
         <AppProviders>
+          <AccessibilityEnhancer />
+          <Analytics 
+            gaId={process.env.NEXT_PUBLIC_GA_ID}
+            plausibleDomain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+          />
           <DynamicLang />
           <div className="relative z-10 flex min-h-screen flex-col">
             <Header />
-            <main id="main-content" className="flex-grow">{children}</main>
+            <main id="main-content" className="flex-grow" tabIndex={-1}>{children}</main>
             <Footer />
           </div>
           <Toaster />

@@ -20,13 +20,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useRouter } from 'next/navigation';
 
 
-// Helper to convert file to Base64
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
 
 
 export default function AccountPage() {
@@ -84,11 +77,11 @@ export default function AccountPage() {
     }
     
     const file = event.target.files[0];
-     if (file.size > 1 * 1024 * 1024) { 
+     if (file.size > 2 * 1024 * 1024) { 
         toast({
             variant: "destructive",
             title: <TranslatedText fr="Fichier trop volumineux" en="File too large">Datei zu groß</TranslatedText>,
-            description: <TranslatedText fr="La taille de l'image doit être inférieure à 1 Mo." en="Image size must be less than 1MB.">Die Bildgröße muss weniger als 1 MB betragen.</TranslatedText>,
+            description: <TranslatedText fr="La taille de l'image doit être inférieure à 2 Mo." en="Image size must be less than 2MB.">Die Bildgröße muss weniger als 2 MB betragen.</TranslatedText>,
         });
         return;
     }
@@ -96,12 +89,36 @@ export default function AccountPage() {
     setIsUploading(true);
 
     try {
-        const base64Image = await toBase64(file);
-        
-        // Mise à jour du profil dans Supabase (même logique qu'avant: on stocke l'image en base64)
+        // Upload vers Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `profile-pictures/${fileName}`;
+
+        // Supprimer l'ancienne photo si elle existe
+        if (profile?.photoURL && profile.photoURL.includes('supabase.co')) {
+          const oldPath = profile.photoURL.split('/').slice(-2).join('/');
+          await supabase.storage.from('avatars').remove([oldPath]);
+        }
+
+        // Upload de la nouvelle photo
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Obtenir l'URL publique
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        // Mise à jour du profil avec l'URL de l'image
         const { error } = await supabase
           .from('user_profiles')
-          .update({ photo_url: base64Image } as any)
+          .update({ photo_url: publicUrl })
           .eq('id', user.id);
 
         if (error) throw error;

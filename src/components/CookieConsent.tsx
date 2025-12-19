@@ -2,77 +2,64 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { TranslatedText } from '@/components/TranslatedText';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { TranslatedText } from '@/components/TranslatedText';
 import { cn } from '@/lib/utils';
-import { Settings } from 'lucide-react';
-
-const COOKIE_CONSENT_KEY = 'ezcentials-cookie-consent';
+import { Cookie, Settings, X } from 'lucide-react';
 
 type CookiePreferences = {
   necessary: boolean;
   analytics: boolean;
   marketing: boolean;
-  timestamp: number;
+  functional: boolean;
 };
 
-const defaultPreferences: CookiePreferences = {
-  necessary: true, // Always true, cannot be disabled
-  analytics: false,
-  marketing: false,
-  timestamp: Date.now(),
-};
+const COOKIE_CONSENT_KEY = 'ezcentials-cookie-consent';
 
 export function CookieConsent() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [preferences, setPreferences] = useState<CookiePreferences>(defaultPreferences);
+  const [preferences, setPreferences] = useState<CookiePreferences>({
+    necessary: true, // Always true, cannot be disabled
+    analytics: false,
+    marketing: false,
+    functional: false,
+  });
 
   useEffect(() => {
-    // Check if consent has been given
+    // Check if consent has already been given
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved) as CookiePreferences;
-          setPreferences(parsed);
-          setIsOpen(false);
-        } catch {
-          setIsOpen(true);
-        }
+      const stored = localStorage.getItem(COOKIE_CONSENT_KEY);
+      if (!stored) {
+        // Show banner after a short delay for better UX
+        const timer = setTimeout(() => {
+          setShowBanner(true);
+        }, 1000);
+        return () => clearTimeout(timer);
       } else {
-        setIsOpen(true);
+        // Load stored preferences
+        try {
+          const parsed = JSON.parse(stored);
+          setPreferences(parsed);
+        } catch (e) {
+          // Invalid stored data, show banner again
+          setShowBanner(true);
+        }
       }
     }
   }, []);
-
-  const savePreferences = (prefs: CookiePreferences) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(prefs));
-      setPreferences(prefs);
-      setIsOpen(false);
-      setShowSettings(false);
-    }
-  };
 
   const handleAcceptAll = () => {
     const allAccepted: CookiePreferences = {
       necessary: true,
       analytics: true,
       marketing: true,
-      timestamp: Date.now(),
+      functional: true,
     };
+    setPreferences(allAccepted);
     savePreferences(allAccepted);
+    setShowBanner(false);
+    setShowSettings(false);
   };
 
   const handleRejectAll = () => {
@@ -80,59 +67,79 @@ export function CookieConsent() {
       necessary: true,
       analytics: false,
       marketing: false,
-      timestamp: Date.now(),
+      functional: false,
     };
+    setPreferences(onlyNecessary);
     savePreferences(onlyNecessary);
+    setShowBanner(false);
+    setShowSettings(false);
   };
 
   const handleSavePreferences = () => {
     savePreferences(preferences);
+    setShowBanner(false);
+    setShowSettings(false);
   };
 
-  const updatePreference = (key: keyof CookiePreferences, value: boolean) => {
+  const savePreferences = (prefs: CookiePreferences) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(prefs));
+      // Dispatch custom event for other components to listen to
+      window.dispatchEvent(new CustomEvent('cookieConsentUpdated', { detail: prefs }));
+    }
+  };
+
+  const togglePreference = (key: keyof CookiePreferences) => {
     if (key === 'necessary') return; // Cannot disable necessary cookies
-    setPreferences((prev) => ({ ...prev, [key]: value }));
+    setPreferences((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
-  if (!isOpen) return null;
+  if (!showBanner) return null;
 
   return (
-    <>
-      {/* Cookie Banner */}
-      <div
-        className={cn(
-          'fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-2xl',
-          'animate-in slide-in-from-bottom duration-300',
-          isOpen ? 'block' : 'hidden'
-        )}
-      >
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex-1 space-y-2">
-              <h3 className="font-headline text-lg font-semibold">
-                <TranslatedText fr="Gestion des cookies" en="Cookie Management">
-                  Cookie-Verwaltung
-                </TranslatedText>
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-2xl">
-                <TranslatedText
-                  fr="Nous utilisons des cookies pour améliorer votre expérience, analyser le trafic et personnaliser le contenu. Vous pouvez accepter tous les cookies ou personnaliser vos préférences."
-                  en="We use cookies to enhance your experience, analyze traffic, and personalize content. You can accept all cookies or customize your preferences."
-                >
-                  Wir verwenden Cookies, um Ihr Erlebnis zu verbessern, den Datenverkehr zu analysieren und Inhalte zu personalisieren. Sie können alle Cookies akzeptieren oder Ihre Einstellungen anpassen.
-                </TranslatedText>
-              </p>
+    <div
+      className={cn(
+        'fixed bottom-0 left-0 right-0 z-[100] animate-in slide-in-from-bottom duration-300',
+        'bg-background border-t shadow-2xl'
+      )}
+    >
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        {!showSettings ? (
+          // Simple banner view
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4 flex-1">
+              <div className="mt-1">
+                <Cookie className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-headline text-lg font-semibold mb-2">
+                  <TranslatedText fr="Gestion des cookies" en="Cookie Management">
+                    Cookie-Verwaltung
+                  </TranslatedText>
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  <TranslatedText
+                    fr="Nous utilisons des cookies pour améliorer votre expérience, analyser le trafic du site et personnaliser le contenu. En acceptant, vous consentez à notre utilisation des cookies."
+                    en="We use cookies to enhance your experience, analyze site traffic, and personalize content. By accepting, you consent to our use of cookies."
+                  >
+                    Wir verwenden Cookies, um Ihr Erlebnis zu verbessern, den Website-Traffic zu analysieren und Inhalte zu personalisieren. Durch die Annahme stimmen Sie unserer Verwendung von Cookies zu.
+                  </TranslatedText>
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowSettings(true)}
                 className="whitespace-nowrap"
               >
-                <Settings className="mr-2 h-4 w-4" />
-                <TranslatedText fr="Paramètres" en="Settings">
-                  Einstellungen
+                <Settings className="h-4 w-4 mr-2" />
+                <TranslatedText fr="Personnaliser" en="Customize">
+                  Anpassen
                 </TranslatedText>
               </Button>
               <Button
@@ -141,8 +148,8 @@ export function CookieConsent() {
                 onClick={handleRejectAll}
                 className="whitespace-nowrap"
               >
-                <TranslatedText fr="Refuser" en="Reject">
-                  Ablehnen
+                <TranslatedText fr="Refuser tout" en="Reject All">
+                  Alle ablehnen
                 </TranslatedText>
               </Button>
               <Button
@@ -156,39 +163,45 @@ export function CookieConsent() {
               </Button>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Settings Dialog */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">
-              <TranslatedText fr="Paramètres des cookies" en="Cookie Settings">
-                Cookie-Einstellungen
-              </TranslatedText>
-            </DialogTitle>
-            <DialogDescription>
-              <TranslatedText
-                fr="Gérez vos préférences de cookies. Vous pouvez activer ou désactiver différents types de cookies ci-dessous."
-                en="Manage your cookie preferences. You can enable or disable different types of cookies below."
+        ) : (
+          // Detailed settings view
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-headline text-xl font-semibold mb-2">
+                  <TranslatedText fr="Paramètres des cookies" en="Cookie Settings">
+                    Cookie-Einstellungen
+                  </TranslatedText>
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  <TranslatedText
+                    fr="Gérez vos préférences de cookies. Vous pouvez activer ou désactiver différents types de cookies ci-dessous."
+                    en="Manage your cookie preferences. You can enable or disable different types of cookies below."
+                  >
+                    Verwalten Sie Ihre Cookie-Einstellungen. Sie können verschiedene Cookie-Typen unten aktivieren oder deaktivieren.
+                  </TranslatedText>
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSettings(false)}
+                className="h-8 w-8"
               >
-                Verwalten Sie Ihre Cookie-Einstellungen. Sie können verschiedene Cookie-Typen unten aktivieren oder deaktivieren.
-              </TranslatedText>
-            </DialogDescription>
-          </DialogHeader>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
 
-          <div className="space-y-6 py-4">
-            {/* Necessary Cookies */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="necessary" className="text-base font-semibold">
+            <div className="space-y-4 border-t pt-4">
+              {/* Necessary Cookies */}
+              <div className="flex items-center justify-between py-3">
+                <div className="flex-1 mr-4">
+                  <h4 className="font-semibold text-sm mb-1">
                     <TranslatedText fr="Cookies nécessaires" en="Necessary Cookies">
                       Notwendige Cookies
                     </TranslatedText>
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
                     <TranslatedText
                       fr="Ces cookies sont essentiels au fonctionnement du site et ne peuvent pas être désactivés."
                       en="These cookies are essential for the website to function and cannot be disabled."
@@ -197,103 +210,114 @@ export function CookieConsent() {
                     </TranslatedText>
                   </p>
                 </div>
-                <Switch
-                  id="necessary"
-                  checked={preferences.necessary}
-                  disabled
-                  className="opacity-50"
-                />
+                <Switch checked={preferences.necessary} disabled />
               </div>
-            </div>
 
-            <Separator />
-
-            {/* Analytics Cookies */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5 flex-1 mr-4">
-                  <Label htmlFor="analytics" className="text-base font-semibold">
-                    <TranslatedText fr="Cookies analytiques" en="Analytics Cookies">
+              {/* Analytics Cookies */}
+              <div className="flex items-center justify-between py-3">
+                <div className="flex-1 mr-4">
+                  <h4 className="font-semibold text-sm mb-1">
+                    <TranslatedText fr="Cookies d'analyse" en="Analytics Cookies">
                       Analyse-Cookies
                     </TranslatedText>
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
                     <TranslatedText
-                      fr="Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site en collectant des informations anonymes."
-                      en="These cookies help us understand how visitors interact with our site by collecting anonymous information."
+                      fr="Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site."
+                      en="These cookies help us understand how visitors interact with our website."
                     >
-                      Diese Cookies helfen uns zu verstehen, wie Besucher mit unserer Website interagieren, indem sie anonyme Informationen sammeln.
+                      Diese Cookies helfen uns zu verstehen, wie Besucher mit unserer Website interagieren.
                     </TranslatedText>
                   </p>
                 </div>
                 <Switch
-                  id="analytics"
                   checked={preferences.analytics}
-                  onCheckedChange={(checked) => updatePreference('analytics', checked)}
+                  onCheckedChange={() => togglePreference('analytics')}
                 />
               </div>
-            </div>
 
-            <Separator />
-
-            {/* Marketing Cookies */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5 flex-1 mr-4">
-                  <Label htmlFor="marketing" className="text-base font-semibold">
+              {/* Marketing Cookies */}
+              <div className="flex items-center justify-between py-3">
+                <div className="flex-1 mr-4">
+                  <h4 className="font-semibold text-sm mb-1">
                     <TranslatedText fr="Cookies marketing" en="Marketing Cookies">
                       Marketing-Cookies
                     </TranslatedText>
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
                     <TranslatedText
-                      fr="Ces cookies sont utilisés pour vous montrer des publicités pertinentes et mesurer l'efficacité de nos campagnes marketing."
-                      en="These cookies are used to show you relevant advertisements and measure the effectiveness of our marketing campaigns."
+                      fr="Ces cookies sont utilisés pour vous montrer des publicités pertinentes et mesurer l'efficacité des campagnes."
+                      en="These cookies are used to show you relevant advertisements and measure campaign effectiveness."
                     >
-                      Diese Cookies werden verwendet, um Ihnen relevante Werbung anzuzeigen und die Effektivität unserer Marketingkampagnen zu messen.
+                      Diese Cookies werden verwendet, um Ihnen relevante Werbung anzuzeigen und die Effektivität von Kampagnen zu messen.
                     </TranslatedText>
                   </p>
                 </div>
                 <Switch
-                  id="marketing"
                   checked={preferences.marketing}
-                  onCheckedChange={(checked) => updatePreference('marketing', checked)}
+                  onCheckedChange={() => togglePreference('marketing')}
+                />
+              </div>
+
+              {/* Functional Cookies */}
+              <div className="flex items-center justify-between py-3">
+                <div className="flex-1 mr-4">
+                  <h4 className="font-semibold text-sm mb-1">
+                    <TranslatedText fr="Cookies fonctionnels" en="Functional Cookies">
+                      Funktionale Cookies
+                    </TranslatedText>
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    <TranslatedText
+                      fr="Ces cookies permettent au site de se souvenir de vos choix et de fournir des fonctionnalités améliorées."
+                      en="These cookies allow the website to remember your choices and provide enhanced features."
+                    >
+                      Diese Cookies ermöglichen es der Website, sich an Ihre Auswahl zu erinnern und erweiterte Funktionen bereitzustellen.
+                    </TranslatedText>
+                  </p>
+                </div>
+                <Switch
+                  checked={preferences.functional}
+                  onCheckedChange={() => togglePreference('functional')}
                 />
               </div>
             </div>
-          </div>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={handleRejectAll}
-              className="w-full sm:w-auto"
-            >
-              <TranslatedText fr="Tout refuser" en="Reject All">
-                Alle ablehnen
-              </TranslatedText>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleAcceptAll}
-              className="w-full sm:w-auto"
-            >
-              <TranslatedText fr="Tout accepter" en="Accept All">
-                Alle akzeptieren
-              </TranslatedText>
-            </Button>
-            <Button
-              onClick={handleSavePreferences}
-              className="w-full sm:w-auto"
-            >
-              <TranslatedText fr="Enregistrer les préférences" en="Save Preferences">
-                Einstellungen speichern
-              </TranslatedText>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRejectAll}
+                className="flex-1 sm:flex-none"
+              >
+                <TranslatedText fr="Refuser tout" en="Reject All">
+                  Alle ablehnen
+                </TranslatedText>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAcceptAll}
+                className="flex-1 sm:flex-none"
+              >
+                <TranslatedText fr="Tout accepter" en="Accept All">
+                  Alle akzeptieren
+                </TranslatedText>
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSavePreferences}
+                className="flex-1 sm:flex-none"
+              >
+                <TranslatedText fr="Enregistrer les préférences" en="Save Preferences">
+                  Einstellungen speichern
+                </TranslatedText>
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
