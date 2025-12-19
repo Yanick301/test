@@ -62,6 +62,22 @@ export default function CategoryPage() {
     return getProductsByCategory(allProducts, categorySlug);
   }, [categorySlug]);
 
+  // Calculer la plage de prix maximale pour initialiser le filtre
+  const maxPriceInCategory = useMemo(() => {
+    if (allProductsInCategory.length === 0) return 1000;
+    return Math.max(...allProductsInCategory.map(p => p.price), 1000);
+  }, [allProductsInCategory]);
+
+  // Initialiser le filtre de prix avec la plage maximale
+  useEffect(() => {
+    if (allProductsInCategory.length > 0 && filters.priceRange[1] === 1000) {
+      setFilters(prev => ({
+        ...prev,
+        priceRange: [0, maxPriceInCategory]
+      }));
+    }
+  }, [allProductsInCategory.length, maxPriceInCategory]);
+
   // Apply filters
   const filteredProducts = useMemo(() => {
     let filtered = [...allProductsInCategory];
