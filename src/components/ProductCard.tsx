@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Product } from '@/lib/types';
-import placeholderImagesData from '@/lib/placeholder-images.json';
+import { findProductImage } from '@/lib/image-utils';
 import { TranslatedText } from './TranslatedText';
 import { Star, ShoppingCart } from 'lucide-react';
 import { ProductCardActions } from './ProductCardActions';
@@ -17,8 +17,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { AddToFavoritesButton } from './favorites/AddToFavoritesButton';
 
-const { placeholderImages } = placeholderImagesData;
-
 type ProductCardProps = {
   product: Product;
 };
@@ -26,7 +24,7 @@ type ProductCardProps = {
 export function ProductCard({ product }: ProductCardProps) {
   const { language } = useLanguage();
   const productImage = useMemo(() => 
-    placeholderImages.find(p => p.id === product.images[0]), 
+    findProductImage(product.images[0]), 
     [product.images]
   );
   const averageRating = 5;

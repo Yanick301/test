@@ -11,7 +11,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductCard } from '@/components/ProductCard';
-import placeholderImagesData from '@/lib/placeholder-images.json';
+import { findProductImage } from '@/lib/image-utils';
 import { TranslatedText } from '@/components/TranslatedText';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,6 @@ import {
 import { ProductPageSkeleton } from '@/components/skeletons/ProductPageSkeleton';
 import { SEOHead } from '@/components/SEOHead';
 
-const { placeholderImages } = placeholderImagesData;
 
 export default function ProductPage() {
   const params = useParams();
@@ -203,8 +202,8 @@ export default function ProductPage() {
     return null; // Should be handled by notFound, but for type safety
   }
   
-  const mainImage = placeholderImages.find(p => p.id === product.images[0]);
-  const altImages = product.images.slice(1).map(id => placeholderImages.find(p => p.id === id));
+  const mainImage = findProductImage(product.images[0]);
+  const altImages = product.images.slice(1).map(id => findProductImage(id));
 
   const handleAddToCart = () => {
     if (!product) return;

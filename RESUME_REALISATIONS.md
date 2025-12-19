@@ -285,3 +285,4 @@ ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
 Les fonctionnalités principales sont en place. Il reste principalement à compléter l'interface admin et à écrire les tests.
 
 
+

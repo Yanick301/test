@@ -1,17 +1,16 @@
 import type { Metadata } from 'next';
 import type { Product, Category } from './types';
 import { products, categories } from './data';
-import placeholderImagesData from './placeholder-images.json';
+import { getProductImageUrl, findProductImage } from './image-utils';
 
-const { placeholderImages } = placeholderImagesData;
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ezcentials.com';
 
 export function generateProductMetadata(product: Product, language: string = 'de'): Metadata {
   const productName = language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name;
   const productDescription = language === 'fr' ? product.description_fr : language === 'en' ? product.description_en : product.description;
   
-  const mainImage = placeholderImages.find(p => p.id === product.images[0]);
-  const imageUrl = mainImage ? `${baseUrl}${mainImage.imageUrl}` : `${baseUrl}/images/logo.png`;
+  const mainImage = findProductImage(product.images[0]);
+  const imageUrl = `${baseUrl}${mainImage.imageUrl}`;
 
   return {
     title: productName,
@@ -59,8 +58,8 @@ export function generateProductMetadata(product: Product, language: string = 'de
 export function generateCategoryMetadata(category: Category, language: string = 'de'): Metadata {
   const categoryName = language === 'fr' ? category.name_fr : language === 'en' ? category.name_en : category.name;
   
-  const categoryImage = placeholderImages.find(p => p.id === category.imageId);
-  const imageUrl = categoryImage ? `${baseUrl}${categoryImage.imageUrl}` : `${baseUrl}/images/logo.png`;
+  const categoryImage = findProductImage(category.imageId);
+  const imageUrl = `${baseUrl}${categoryImage.imageUrl}`;
 
   return {
     title: categoryName,
@@ -104,8 +103,8 @@ export function generateProductStructuredData(product: Product, language: string
   const productName = language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name;
   const productDescription = language === 'fr' ? product.description_fr : language === 'en' ? product.description_en : product.description;
   
-  const mainImage = placeholderImages.find(p => p.id === product.images[0]);
-  const imageUrl = mainImage ? `${baseUrl}${mainImage.imageUrl}` : `${baseUrl}/images/logo.png`;
+  const mainImage = findProductImage(product.images[0]);
+  const imageUrl = `${baseUrl}${mainImage.imageUrl}`;
 
   const category = categories.find(c => c.slug === product.category);
   const categoryName = category 
@@ -138,6 +137,7 @@ export function generateProductStructuredData(product: Product, language: string
     },
   };
 }
+
 
 
 

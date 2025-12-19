@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/select';
 import { useLanguage } from '@/context/LanguageContext';
 import { ArrowLeft, Loader2, Banknote, AlertTriangle } from 'lucide-react';
-import placeholderImagesData from '@/lib/placeholder-images.json';
+import { findProductImage } from '@/lib/image-utils';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/supabase';
@@ -36,7 +36,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { safeJsonParse, safeGetLocalStorage, safeSetLocalStorage, isLocalStorageAvailable } from '@/lib/security';
 import { createOrder } from '@/app/actions/orderActions';
 
-const { placeholderImages } = placeholderImagesData;
 
 const baseSchema = {
   email: z.string(),
@@ -498,19 +497,18 @@ export function CheckoutClientPage() {
                 <div className="flow-root">
                   <ul role="list" className="-my-6 divide-y divide-border">
                     {cartItems.map((item) => {
-                      const image = placeholderImages.find(
-                        (p) => p.id === item.product.images[0]
-                      );
+                      const image = findProductImage(item.product.images[0]);
                       return (
                         <li key={item.id} className="flex space-x-4 py-6">
                           <div className="relative h-20 w-20 flex-shrink-0">
-                            {image && (
-                              <img
-                                src={image.imageUrl}
-                                alt={item.product.name}
-                                className="h-full w-full rounded-md object-cover object-center"
-                              />
-                            )}
+                            <img
+                              src={image.imageUrl}
+                              alt={item.product.name}
+                              className="h-full w-full rounded-md object-cover object-center"
+                              onError={(e) => {
+                                e.currentTarget.src = '/images/logo.png';
+                              }}
+                            />
                             <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
                               {item.quantity}
                             </span>

@@ -9,11 +9,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { DialogClose } from '@radix-ui/react-dialog';
-import placeholderImagesData from '@/lib/placeholder-images.json';
+import { findProductImage } from '@/lib/image-utils';
 import { useLanguage } from '@/context/LanguageContext';
 import type { Color } from '@/lib/types';
 
-const { placeholderImages } = placeholderImagesData;
 
 const SheetClose = ({
   children,
@@ -83,21 +82,22 @@ export function CartSheetContent() {
       <ScrollArea className="flex-grow pr-6">
         <div className="flex flex-col gap-6 py-4">
           {cartItems.map((item) => {
-            const productImage = placeholderImages.find((p) => p.id === item.product.images[0]);
+            const productImage = findProductImage(item.product.images[0]);
             const translatedColor = getTranslatedColor(item.color);
             return (
               <div key={item.id} className="flex items-start gap-4">
                 <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
-                  {productImage && (
-                    <Image
-                      src={productImage.imageUrl}
-                      alt={item.product.name}
-                      fill
-                      sizes="96px"
-                      className="object-cover"
-                      loading="lazy"
-                    />
-                  )}
+                  <Image
+                    src={productImage.imageUrl}
+                    alt={item.product.name}
+                    fill
+                    sizes="96px"
+                    className="object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src = '/images/logo.png';
+                    }}
+                  />
                 </div>
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex justify-between">

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
-import placeholderImagesData from '@/lib/placeholder-images.json';
+import { findProductImage } from '@/lib/image-utils';
 import { Button } from './ui/button';
 import { products as allProducts } from '@/lib/data';
 import { useMemo } from 'react';
@@ -24,7 +24,6 @@ type CollectionHighlightProps = {
     secondaryActionText: ReactNode;
 }
 
-const { placeholderImages } = placeholderImagesData;
 
 export function CollectionHighlight({
     supertitle,
@@ -39,7 +38,7 @@ export function CollectionHighlight({
 }: CollectionHighlightProps) {
 
     const images = useMemo(() => imageIds.map(id => {
-        const image = placeholderImages.find(img => img.id === id);
+        const image = findProductImage(id);
         if (!image) return null;
         
         const product = allProducts.find(p => p.images.includes(id));

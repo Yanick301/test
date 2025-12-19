@@ -17,12 +17,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TranslatedText } from '../TranslatedText';
 import { categories, products as allProducts } from '@/lib/data';
-import placeholderImagesData from '@/lib/placeholder-images.json';
+import { findProductImage } from '@/lib/image-utils';
 import Link from 'next/link';
 import { Separator } from '../ui/separator';
 import { useLanguage } from '@/context/LanguageContext';
-
-const { placeholderImages } = placeholderImagesData;
 
 export function SearchDialog() {
   const [isOpen, setIsOpen] = useState(false);
@@ -128,7 +126,7 @@ export function SearchDialog() {
                   <h4 className="text-sm font-medium text-muted-foreground mb-4"><TranslatedText fr="Suggestions" en="Suggestions">Vorschläge</TranslatedText></h4>
                   <div className="grid grid-cols-2 gap-2">
                     {suggestions.map((product) => {
-                      const productImage = placeholderImages.find(p => p.id === product.images[0]);
+                      const productImage = findProductImage(product.images[0]);
                       return (
                         <Link 
                           key={product.id}
@@ -137,18 +135,19 @@ export function SearchDialog() {
                           onClick={() => setIsOpen(false)}
                           prefetch={true}
                         >
-                          {productImage && (
-                            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border">
-                              <Image
-                                src={productImage.imageUrl}
-                                alt={language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name}
-                                fill
-                                sizes="48px"
-                                className="object-cover"
-                                loading="lazy"
-                              />
-                            </div>
-                          )}
+                          <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border">
+                            <Image
+                              src={productImage.imageUrl}
+                              alt={language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.src = '/images/logo.png';
+                              }}
+                            />
+                          </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">
                               <TranslatedText fr={product.name_fr} en={product.name_en}>{product.name}</TranslatedText>
@@ -165,7 +164,7 @@ export function SearchDialog() {
           ) : searchResults.length > 0 ? (
             <ul className="divide-y divide-border -mx-6">
               {searchResults.map((product) => {
-                const productImage = placeholderImages.find(p => p.id === product.images[0]);
+                const productImage = findProductImage(product.images[0]);
                 return (
                   <li key={product.id}>
                     <Link 
@@ -175,16 +174,17 @@ export function SearchDialog() {
                         prefetch={true}
                     >
                       <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border">
-                        {productImage && (
-                          <Image
-                            src={productImage.imageUrl}
-                            alt={language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name}
-                            fill
-                            sizes="64px"
-                            className="object-cover"
-                            loading="lazy"
-                          />
-                        )}
+                        <Image
+                          src={productImage.imageUrl}
+                          alt={language === 'fr' ? product.name_fr : language === 'en' ? product.name_en : product.name}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = '/images/logo.png';
+                          }}
+                        />
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-sm"><TranslatedText fr={product.name_fr} en={product.name_en}>{product.name}</TranslatedText></p>

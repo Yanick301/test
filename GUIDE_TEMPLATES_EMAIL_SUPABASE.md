@@ -168,3 +168,4 @@ Exemple avec logo :
 
 **Une fois les templates configurés, tous les emails contiendront des liens cliquables !** ✅
 
+

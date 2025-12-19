@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import placeholderImagesData from '@/lib/placeholder-images.json';
+import { findProductImage } from '@/lib/image-utils';
 import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
@@ -15,11 +15,9 @@ type CategoryCardProps = {
     imageId: string;
 };
 
-const { placeholderImages } = placeholderImagesData;
-
 export function CategoryCard({ pretitle, title, description, linkText, href, imageId }: CategoryCardProps) {
     const image = useMemo(() => 
-        placeholderImages.find((img) => img.id === imageId),
+        findProductImage(imageId),
         [imageId]
     );
 
