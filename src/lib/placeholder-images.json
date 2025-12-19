@@ -377,6 +377,42 @@
       "description": "TUDOR Heritage 70330B",
       "imageUrl": "/images/products/tudor_heritage_70330b_3.jpg",
       "imageHint": "watch"
+    },
+    {
+      "id": "mens-category",
+      "description": "Image de catégorie mens-category",
+      "imageUrl": "/images/products/mens-category.jpg",
+      "imageHint": "category"
+    },
+    {
+      "id": "womens-category",
+      "description": "Image de catégorie womens-category",
+      "imageUrl": "/images/products/womens-category.jpg",
+      "imageHint": "category"
+    },
+    {
+      "id": "accessories-category",
+      "description": "Image de catégorie accessories-category",
+      "imageUrl": "/images/products/accessories-category.jpg",
+      "imageHint": "category"
+    },
+    {
+      "id": "shoes-category",
+      "description": "Image de catégorie shoes-category",
+      "imageUrl": "/images/products/shoes-category.jpg",
+      "imageHint": "category"
+    },
+    {
+      "id": "winter-category",
+      "description": "Image de catégorie winter-category",
+      "imageUrl": "/images/products/winter-category.jpg",
+      "imageHint": "category"
+    },
+    {
+      "id": "sport-category",
+      "description": "Image de catégorie sport-category",
+      "imageUrl": "/images/products/sport-category.jpg",
+      "imageHint": "category"
     }
   ]
 }
