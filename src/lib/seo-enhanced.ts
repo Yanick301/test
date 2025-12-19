@@ -46,7 +46,7 @@ export function generateProductMetadata(
           alt: name,
         },
       ],
-      type: 'product',
+      type: 'website',
     },
     twitter: {
       card: 'summary_large_image',

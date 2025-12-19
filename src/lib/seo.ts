@@ -24,7 +24,7 @@ export function generateProductMetadata(product: Product, language: string = 'de
       'EZCENTIALS'
     ],
     openGraph: {
-      type: 'product',
+      type: 'website',
       locale: language === 'fr' ? 'fr_FR' : language === 'en' ? 'en_GB' : 'de_DE',
       title: productName,
       description: productDescription.substring(0, 160),

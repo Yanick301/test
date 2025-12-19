@@ -56,7 +56,7 @@ export function CollectionHighlight({
                                     <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl">
                                         <Image
                                             src={image.imageUrl}
-                                            alt={image.description || 'Collection image'}
+                                            alt={'description' in image ? image.description : 'Collection image'}
                                             fill
                                             sizes="(max-width: 768px) 50vw, 25vw"
                                             className="object-cover object-center transition-transform duration-500 group-hover:scale-110"
